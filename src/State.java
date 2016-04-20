@@ -7,7 +7,7 @@ public class State {
 	int flags;	// flag to indicate which mode we're running in: example.) flag_quote_none AND flag_sql_ansi 
 	int pos;  	// index in string during tokenization
 	Token[] tokenvec = new Token[8];
-	Token current;
+	int current; // current position in tokenvec
 	String fingerprint;
 	int reason;
     int stats_comment_ddw;
@@ -29,7 +29,7 @@ public class State {
     	this.s = s;
     	this.slen = len;
         this.flags = flags;
-        this.current = tokenvec[0];    
+        this.current = 0;    
 //    	sf->lookup = libinjection_sqli_lookup_word;
 //      sf->userdata = 0;
     }
@@ -41,7 +41,7 @@ public class State {
     	System.out.printf("Length: %d\n", slen);
     	System.out.printf("Flags: %d\n",  flags);
     	System.out.printf("Position in input string: %d\n", pos);
-    	System.out.printf("Current Token: %s", (char)current.type);
+    	System.out.printf("Current Token: %s", (char) tokenvec[current].type);
     	
     }
 }
