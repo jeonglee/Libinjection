@@ -48,8 +48,7 @@ public class Libinjection {
 	                        ,TYPE_FINGERPRINT = (int)'F'
 	                        ,TYPE_BACKSLASH   = (int)'\\';
 	
-	public static final int TRUE = 1 
-			               ,FALSE = 0;
+	public static final int TRUE = 1, FALSE = 0;
 
 	Keyword keywords = new Keyword("/Users/Qubit/Documents/workspace/Libinjection/src/Keywords.txt");
 	
@@ -110,16 +109,28 @@ public class Libinjection {
 	}
 
 	
-	char libinjection_sqli_lookup_word(String str) {
+	Character libinjection_sqli_lookup_word(String str) {
 		return keywords.keywordMap.get(str);
+	}
+	
+	boolean is_keyword(String str) {
+		Character value = keywords.keywordMap.get(str);
+		if (value == null) {
+			return false;
+		}
+		return true;
 	}
 	
 	boolean libinjection_sqli_check_fingerprint(State state) {
 		return libinjection_sqli_blacklist(state);
 	}
 	
+	
 	boolean libinjection_sqli_blacklist(State state) {
 		int len = state.fingerprint.length();
+		boolean patmatch;
+		int ascii;
+		String fp2 = "0";
 		
 		if (len < 1) {
 			System.out.println("blacklisted: fingerprint length < 1");
@@ -127,26 +138,162 @@ public class Libinjection {
 		}
 		
 		
-		return false;
+		//  maybe just use fp2.toUpperCase()?
+		for (int i = 0; i < len; i++) {
+			ascii = (int) state.fingerprint.charAt(i);
+			if (ascii > 0x60 && ascii < 0x7B) {
+				ascii -= 0x20;
+			}
+			fp2 = fp2 + (char) ascii;
+		}
+		
+		patmatch = is_keyword(fp2);
+		if (!patmatch) {
+			System.out.println("fingerprint not in blacklist");
+			return false;
+		}
+		return true;
 	}
 	
-	
-	/* Tokenize and Fold */
 	
 	// Returns the number of tokens in final fingerprint.
 	int libinjection_sqli_fold(State state) {
 /* UNFINISHED */
 		int pos = 0;	// position where NEXT token goes
 		int left = 0;	// count of how many tokens that are already folded or processed (i.e. part of the fingerprint)
-		boolean more = true;	
+		int current = state.current;
+		boolean more = true;
+		/* A comment token to add additional information. 
+		 * Initialized to prevent errors
+		 */
+		Token last_comment = new Token(CHAR_NULL, 0, 0, null);	
 		
 		while (more) {
-			more = libinjection_sqli_tokenize(state);	
+			more = libinjection_sqli_tokenize(state);
+			if ( ! (state.tokenvec[current].type == TYPE_COMMENT ||
+					state.tokenvec[current].type == TYPE_LEFTPARENS ||
+					state.tokenvec[current].type == TYPE_SQLTYPE ||
+					token_is_unary_op(state.tokenvec[current]))) {
+				break;
+			}
 		}
+		
+		if (! more) {
+			return 0;
+		} 
+		else {
+			pos += 1;
+		}
+		
+		while (true) {
+	        /* do we have all the max number of tokens?  if so do
+	         * some special cases for 5 tokens
+	         */
+			if (pos >= LIBINJECTION_SQLI_MAX_TOKENS) {
+				
+			}
+			
+			// if processed all characters in input or the number of tokens in fingerprint exceeds 5, stop.
+			if (! more || left > LIBINJECTION_SQLI_MAX_TOKENS) {
+				left = pos;
+				break;
+			}
+			
+			// get up to two tokens (assuming pos == left)
+			while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && (pos-left) < 2) {
+				state.current = pos;
+				more = libinjection_sqli_tokenize(state);
+				if (more) {
+					if (state.tokenvec[current].type == TYPE_COMMENT) {
+						last_comment = state.tokenvec[current];
+					} else {
+						last_comment.type = CHAR_NULL;
+						pos += 1;
+					}
+				}
+			}
+			
+			/* if we didn't get at least two tokens, it means 
+			 * we exited above while loop because we: 
+			 * 1.) processed all of the input OR
+			 * 2.) added the 5th (and last) token
+			 * In this case go through loop again, go through special cases, exit or keep going. */
+			if (pos - left < 2) {
+				left = pos;
+				continue;
+			}
+			
+			/* 
+			 * 
+			 * 
+			 * two token folding
+			 * 
+			 * 
+			 */
+			
+			/* all cases of handling 2 tokens is done
+			 * and nothing matched. Get one more token
+			 */
+			while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && (pos - left) < 3) {
+				state.current = pos;
+				more = libinjection_sqli_tokenize(state);
+				if (more) {
+					if ( state.tokenvec[current].type == TYPE_COMMENT) {
+						last_comment = state.tokenvec[current];
+					}
+					else {
+						last_comment.type = CHAR_NULL;
+						pos += 1;
+					}
+				}
+			}
+			
+			/* if we didn't get at least three tokens, it means 
+			 * we exited above while loop because we: 
+			 * 1.) processed all of the input OR
+			 * 2.) added the 5th (and last) token
+			 * In this case go through loop again, go through special cases, exit or keep going. */
+			if (pos - left < 3) {
+				left = pos;
+				continue;
+			}
+			
+			/* 
+			 * 
+			 * 
+			 * three token folding 
+			 * 
+			 * 
+			 * */
+			
+			/* assume left-most token is good,
+			 * now use the existing 2 tokens -- do not get another
+			 */
+			left += 1;
+			
+		} /* while(1) */
+		
+		/* if we have 4 or less tokens, and we had a comment token
+		 * at the end, add it back
+		 */
+		if (left < LIBINJECTION_SQLI_MAX_TOKENS && last_comment.type == TYPE_COMMENT) {
+			state.tokenvec[left] = last_comment;
+			left += 1;
+		}
+		
+		/* sometimes we grab a 6th token to help
+		 * determine the type of token 5.
+		 * --> what does this mean?
+		 */
+		if (left > LIBINJECTION_SQLI_MAX_TOKENS) {
+			left = LIBINJECTION_SQLI_MAX_TOKENS;
+		}
+		
 		return left;
 	}
 	
 	// Tokenize, return whether there are more characters to tokenize
+
 	boolean libinjection_sqli_tokenize(State state) {
 /* UNFINISHED */
 		int pos = state.pos;
@@ -157,6 +304,10 @@ public class Libinjection {
 		if (slen == 0) {
 			return false;
 		}
+		
+		// clear token in current position
+		state.tokenvec[current] = null;
+		
 		
 		while (pos < slen) {
 			char ch = s.charAt(pos);	// current character
@@ -421,9 +572,8 @@ public class Libinjection {
 		    }
 		    state.pos = pos;
 		    
-		    if (state.current == current+1) {
+		    if (state.tokenvec[current].type != CHAR_NULL) {
 				state.stats_tokens += 1;
-				System.out.printf("added token: %c\n", state.tokenvec[current].type);
 				return true;
 			}
 		}		
@@ -436,16 +586,36 @@ public class Libinjection {
 		return state.pos + 1;  
 	}
 	
+	
 	int parse_char(State state) {
 		String s = state.s;
 		int pos = state.pos;
-		Token token = new Token(s.charAt(pos), pos, 1, s.charAt(pos) + "");
-		state.tokenvec[state.current++] = token;
+		Token token = new Token(s.charAt(pos), pos, 1, String.valueOf(s.charAt(pos)));
+		state.tokenvec[state.current] = token;
 		return pos + 1;
 	}
 
 	
-	
+	/* Token methods */
+	boolean token_is_unary_op(Token token) {
+		String str = token.val;
+		int len = token.len;
+		
+		if (token.type != TYPE_OPERATOR) {
+			return false;
+		}
+		
+		switch (len) {
+		case 1:
+			return str.charAt(0) == '+' || str.charAt(0) == '-' || str.charAt(0) == '!' || str.charAt(0) == '~';
+		case 2:
+			return str.charAt(0) == '!' && str.charAt(1) == '!';
+		case 3:
+			return str.toUpperCase().equals("NOT") == false;
+		default:
+			return false;
+		}
+	}
 	
 
 

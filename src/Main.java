@@ -5,13 +5,22 @@ public class Main {
 	public static void main(String[] args) {
 		String input = "admin";
 		State state = new State(input, input.length(), 0);
-//		System.out.println(new File(".").getAbsoluteFile());
-//		Keyword map = new Keyword("/Users/Qubit/Documents/workspace/Libinjection/src/Keywords.txt");
-//		map.printKeywordMap();
-//      System.out.println(map.keywordMap.get("0SO1L"));
-		
+		Keyword map = new Keyword("/Users/Qubit/Documents/workspace/Libinjection/src/Keywords.txt");
 		Libinjection test = new Libinjection();
-		System.out.println(test.libinjection_sqli("{}};(),"));
+
+		
+//		System.out.println(new File(".").getAbsoluteFile());
+//		map.printKeywordMap();
+		
+
+//		
+//		System.out.println(test.libinjection_sqli("{}};(),"));		
+		state.fingerprint = "abcdefghijklmnopqrstuvwxyzABCDEF";
+		test.libinjection_sqli_blacklist(state);
+		
+//		map.printKeywordMap();
+		
+		
 
 	}
 
