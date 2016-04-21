@@ -20,7 +20,7 @@ public class Token {
 		System.out.printf("Type:         %c\n", type);
 		System.out.printf("Position:     %d\n", pos);
 		System.out.printf("Length:       %d\n", len);
-		System.out.printf("Numer of '@': %d\n", count);
+		System.out.printf("Number of '@': %d\n", count);
 		System.out.printf("String open:  %c\n", str_open);
 		System.out.printf("String close: %c\n", str_close);
 	}
