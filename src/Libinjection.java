@@ -24,7 +24,7 @@ public class Libinjection {
 
 	public static final int TRUE = 1, FALSE = 0;
 
-	Keyword keywords = new Keyword("/Users/Qubit/Documents/workspace/Libinjection/src/Keywords.txt");
+	Keyword keywords = new Keyword("src/Keywords.txt");
 
 	/* Main API */
 	boolean libinjection_sqli(String input) {
