@@ -41,7 +41,16 @@ public class State {
     	System.out.printf("Length: %d\n", slen);
     	System.out.printf("Flags: %d\n",  flags);
     	System.out.printf("Position in input string: %d\n", pos);
-    	System.out.printf("Current Token: %s", (char) tokenvec[current].type);
-    	
+    	System.out.printf("Current token index: %d\n", current);
+    	System.out.println("Tokenvec:");
+    	if (tokenvec != null) {
+    		int i = 0;
+    		while (tokenvec[i] != null) {
+    			System.out.printf("[%s ", tokenvec[i].type);
+    		System.out.printf("%s] \n", tokenvec[i].val);
+    			i++;
+    		}
+    		System.out.println();
+    	}
     }
 }

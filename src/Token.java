@@ -5,7 +5,8 @@ public class Token {
 	char str_close;
 	String val;
 	int count;
-	int pos;
+	// position and length of input in original string
+	int pos; 
 	int len;
 	
 	public Token(int stype, int pos, int len, String val) {

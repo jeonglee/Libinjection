@@ -1,7 +1,8 @@
+import java.util.regex.*;
 
 public class Libinjection {
 
-	public static final int LIBINJECTION_SQLI_MAX_TOKENS = 5;
+	public static final int LIBINJECTION_SQLI_MAX_TOKENS = 6;
 
 	public static final int FLAG_QUOTE_NONE = 1 /* 1 << 0 */
 			, FLAG_QUOTE_SINGLE = 2 /* 1 << 1 */
@@ -24,7 +25,8 @@ public class Libinjection {
 
 	public static final int TRUE = 1, FALSE = 0;
 
-	Keyword keywords = new Keyword("src/Keywords.txt");
+	Keyword keywords = new Keyword("bin/Keywords.txt");
+	
 
 	/* Main API */
 	boolean libinjection_sqli(String input) {
@@ -35,6 +37,7 @@ public class Libinjection {
 	int libinjection_is_sqli(State state) {
 		String s = state.s;
 		int slen = state.slen;
+		boolean sqlifingerprint;
 
 		// if no input, not SQLi
 		if (slen == 0) {
@@ -43,18 +46,55 @@ public class Libinjection {
 
 		// test input "as-is". Does tokenizing and folding to get a fingerprint
 		// of input.
-		libinjection_sqli_fingerprint(state, FLAG_QUOTE_NONE | FLAG_SQL_ANSI);
-		boolean sqlifingerprint = libinjection_sqli_check_fingerprint(state);
-		if (sqlifingerprint) {
-			return TRUE;
-		} else if (reparse_as_mysql(state)) {
-			libinjection_sqli_fingerprint(state, FLAG_QUOTE_NONE | FLAG_SQL_MYSQL);
+//		libinjection_sqli_fingerprint(state, FLAG_QUOTE_NONE | FLAG_SQL_ANSI);
+//		sqlifingerprint = libinjection_sqli_check_fingerprint(state);
+//		if (sqlifingerprint) {
+//			return TRUE;
+//		} else if (reparse_as_mysql(state)) {
+//			libinjection_sqli_fingerprint(state, FLAG_QUOTE_NONE | FLAG_SQL_MYSQL);
+//			sqlifingerprint = libinjection_sqli_check_fingerprint(state);
+//			if (sqlifingerprint) {
+//				return TRUE;
+//			}
+//		}
+		
+	    /*
+	     * if input has a single_quote, then
+	     * test as if input was actually '
+	     * example: if input if "1' = 1", then pretend it's
+	     *   "'1' = 1"
+	     * Porting Notes: example the same as doing
+	     *   is_string_sqli(sql_state, "'" + s, slen+1, NULL, fn, arg)
+	     *
+	     */
+		if (s.contains("'")) {
+			state.printState();
+			libinjection_sqli_fingerprint(state, FLAG_QUOTE_SINGLE | FLAG_SQL_ANSI);
+			state.printState();
+			sqlifingerprint = libinjection_sqli_check_fingerprint(state);
+			if (sqlifingerprint) {
+				return TRUE;
+			} else if (reparse_as_mysql(state)) {
+				libinjection_sqli_fingerprint(state, FLAG_QUOTE_SINGLE | FLAG_SQL_MYSQL);
+				sqlifingerprint = libinjection_sqli_check_fingerprint(state);
+				if (sqlifingerprint) {
+					return TRUE;
+				}
+			}
+		}
+		
+	    /*
+	     * same as above but with a double-quote "
+	     */
+		if (s.contains("\"")) {
+			libinjection_sqli_fingerprint(state, FLAG_QUOTE_SINGLE | FLAG_SQL_MYSQL);
 			sqlifingerprint = libinjection_sqli_check_fingerprint(state);
 			if (sqlifingerprint) {
 				return TRUE;
 			}
 		}
-
+		
+		// Not SQLi!
 		return FALSE;
 	}
 
@@ -68,17 +108,53 @@ public class Libinjection {
 		int fplen = 0;
 		String fp = "";
 
-		// sqli_reset(state, flags) --> didn't implement. dunno why it's needed
+		// reset state
+		state = new State(state.s, state.slen, flags);
 
 		// tokenize and fold
 		fplen = libinjection_sqli_fold(state);
+		
 
+	    /* Check for magic PHP backquote comment
+	     * If:
+	     * * last token is of type "bareword"
+	     * * And is quoted in a backtick
+	     * * And isn't closed
+	     * * And it's empty?
+	     * Then convert it to comment
+	     */
+	    if (fplen > 2 &&
+	            state.tokenvec[fplen-1].type == TYPE_BAREWORD &&
+	            state.tokenvec[fplen-1].str_open == CHAR_TICK &&
+	            state.tokenvec[fplen-1].len == 0 &&
+	            state.tokenvec[fplen-1].str_close == CHAR_NULL) {	    	
+	            state.tokenvec[fplen-1].type = TYPE_COMMENT;
+	    }
+		
 		// copy tokenvec to fingerprint
 		for (i = 0; i < fplen; i++) {
 			fp = fp + state.tokenvec[i].type;
 		}
 		state.fingerprint = fp;
-
+		
+	    /*
+	     * check for 'X' in pattern, and then
+	     * clear out all tokens
+	     *
+	     * this means parsing could not be done
+	     * accurately due to pgsql's double comments
+	     * or other syntax that isn't consistent.
+	     * Should be very rare false positive
+	     */
+	    if (state.fingerprint.indexOf(TYPE_EVIL) != -1) {
+	    	state.fingerprint = "X";
+	        
+	    	
+	    	Token token = new Token(TYPE_EVIL, 0, 0, String.valueOf(TYPE_EVIL));
+	    	Token[] replace = { token, null, null, null, null, null, null, null };
+	    	state.tokenvec = replace;
+	    }
+	    
 		return state.fingerprint;
 
 	}
@@ -201,205 +277,209 @@ public class Libinjection {
 			/*
 			 * two token folding
 			 */
-			if (state.tokenvec[left].type == TYPE_STRING && state.tokenvec[left+1].type == TYPE_STRING) {
+			if (state.tokenvec[left].type == TYPE_STRING && state.tokenvec[left + 1].type == TYPE_STRING) {
 				pos -= 1;
 				state.stats_folds += 1;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_SEMICOLON && state.tokenvec[left+1].type == TYPE_SEMICOLON) {
+			} else if (state.tokenvec[left].type == TYPE_SEMICOLON && state.tokenvec[left + 1].type == TYPE_SEMICOLON) {
 				// fold away repeated semicolons. i.e. ;; to ;
 				pos -= 1;
 				state.stats_folds += 1;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_SEMICOLON  &&
-					state.tokenvec[left+1].type == TYPE_FUNCTION &&
-					state.tokenvec[left+1].val.toUpperCase().equals("IF")) {
-				state.tokenvec[left+1].type = TYPE_TSQL;
+			} else if (state.tokenvec[left].type == TYPE_SEMICOLON && state.tokenvec[left + 1].type == TYPE_FUNCTION
+					&& state.tokenvec[left + 1].val.toUpperCase().equals("IF")) {
+				state.tokenvec[left + 1].type = TYPE_TSQL;
 				left += 2;
-				continue; // reparse everything. but we probably can advance left, and pos */
-	        } else if ((state.tokenvec[left].type == TYPE_OPERATOR ||
-                    state.tokenvec[left].type == TYPE_LOGIC_OPERATOR) &&
-                   (token_is_unary_op(state.tokenvec[left+1]) ||
-                    state.tokenvec[left+1].type == TYPE_SQLTYPE)) {
-	        	pos -= 1;
-	        	state.stats_folds += 1;
-	        	left = 0;
-	        	continue;
-	        } else if (state.tokenvec[left].type == TYPE_LEFTPARENS &&
-	                   token_is_unary_op(state.tokenvec[left+1])) {
-	            pos -= 1;
-	            state.stats_folds += 1;
-	            if (left > 0) {
-	                left -= 1;
-	            }
-	            continue;
-	        } else if (syntax_merge_words(state, state.tokenvec[left], left, state.tokenvec[left+1], left+1)) {
-	            pos -= 1;
-	            state.stats_folds += 1;
-	            if (left > 0) {
-	                left -= 1;
-	            }
-	            continue;
-	        } 
-/*  ----------------------------------------------two token handling. take a deeper look--------------------------------------------------------------*/
-	        else if ((state.tokenvec[left].type == TYPE_BAREWORD || state.tokenvec[left].type == TYPE_VARIABLE) &&
-	                   state.tokenvec[left+1].type == TYPE_LEFTPARENS && (
-	                       /* TSQL functions but common enough to be column names */
-	                	   state.tokenvec[left].val.toUpperCase().equals("USER_ID") ||
-	                	   state.tokenvec[left].val.toUpperCase().equals("USER_NAME") ||
+				continue; // reparse everything. but we probably can advance
+							// left, and pos */
+			} else if ((state.tokenvec[left].type == TYPE_OPERATOR || state.tokenvec[left].type == TYPE_LOGIC_OPERATOR)
+					&& (token_is_unary_op(state.tokenvec[left + 1]) || state.tokenvec[left + 1].type == TYPE_SQLTYPE)) {
+				pos -= 1;
+				state.stats_folds += 1;
+				left = 0;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_LEFTPARENS && token_is_unary_op(state.tokenvec[left + 1])) {
+				pos -= 1;
+				state.stats_folds += 1;
+				if (left > 0) {
+					left -= 1;
+				}
+				continue;
+			} else if (syntax_merge_words(state, state.tokenvec[left], left, state.tokenvec[left + 1], left + 1)) {
+				pos -= 1;
+				state.stats_folds += 1;
+				if (left > 0) {
+					left -= 1;
+				}
+				continue;
+			}
+			/*
+			 * ----------------------------------------------two token handling.
+			 * take a deeper
+			 * look-------------------------------------------------------------
+			 * -
+			 */
+			else if ((state.tokenvec[left].type == TYPE_BAREWORD || state.tokenvec[left].type == TYPE_VARIABLE)
+					&& state.tokenvec[left + 1].type == TYPE_LEFTPARENS && (
+					/* TSQL functions but common enough to be column names */
+					state.tokenvec[left].val.toUpperCase().equals("USER_ID") || state.tokenvec[left].val.toUpperCase().equals("USER_NAME") ||
 
-	                       /* Function in MYSQL */
-	                	   state.tokenvec[left].val.toUpperCase().equals("DATABASE") ||
-	                	   state.tokenvec[left].val.toUpperCase().equals("PASSWORD") ||
-	                	   state.tokenvec[left].val.toUpperCase().equals("USER") ||
+					/* Function in MYSQL */
+							state.tokenvec[left].val.toUpperCase().equals("DATABASE")
+							|| state.tokenvec[left].val.toUpperCase().equals("PASSWORD")
+							|| state.tokenvec[left].val.toUpperCase().equals("USER") ||
 
-	                       /* Mysql words that act as a variable and are a function */
+							/*
+							 * Mysql words that act as a variable and are a
+							 * function
+							 */
 
-	                       /* TSQL current_users is fake-variable */
-	                       /* http://msdn.microsoft.com/en-us/library/ms176050.aspx */
-	                	   state.tokenvec[left].val.toUpperCase().equals("CURRENT_USER") ||
-	                	   state.tokenvec[left].val.toUpperCase().equals("CURRENT_DATE") ||
-	                	   state.tokenvec[left].val.toUpperCase().equals("CURRENT_TIME") ||
-	                	   state.tokenvec[left].val.toUpperCase().equals("CURRENT_TIMESTAMP") ||
-	                	   state.tokenvec[left].val.toUpperCase().equals("LOCALTIME") ||
-	                	   state.tokenvec[left].val.toUpperCase().equals("LOCALTIMESTAMP")
-	                       )) {
+							/* TSQL current_users is fake-variable */
+							/*
+							 * http://msdn.microsoft.com/en-us/library/ms176050.
+							 * aspx
+							 */
+							state.tokenvec[left].val.toUpperCase().equals("CURRENT_USER")
+							|| state.tokenvec[left].val.toUpperCase().equals("CURRENT_DATE")
+							|| state.tokenvec[left].val.toUpperCase().equals("CURRENT_TIME")
+							|| state.tokenvec[left].val.toUpperCase().equals("CURRENT_TIMESTAMP")
+							|| state.tokenvec[left].val.toUpperCase().equals("LOCALTIME")
+							|| state.tokenvec[left].val.toUpperCase().equals("LOCALTIMESTAMP"))) {
 
-	            /* pos is the same
-	             * other conversions need to go here... for instance
-	             * password CAN be a function, coalesce CAN be a function
-	             */
-	            state.tokenvec[left].type = TYPE_FUNCTION;
-	            continue;
-	        } else if (state.tokenvec[left].type == TYPE_KEYWORD && (
-	        		state.tokenvec[left].val.toUpperCase().equals("IN") ||
-	        		state.tokenvec[left].val.toUpperCase().equals("NOT IN")
-	                       )) {
+				/*
+				 * pos is the same other conversions need to go here... for
+				 * instance password CAN be a function, coalesce CAN be a
+				 * function
+				 */
+				state.tokenvec[left].type = TYPE_FUNCTION;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_KEYWORD && (state.tokenvec[left].val.toUpperCase().equals("IN")
+					|| state.tokenvec[left].val.toUpperCase().equals("NOT IN"))) {
 
-	            if (state.tokenvec[left+1].type == TYPE_LEFTPARENS) {
-	                /* got .... IN ( ...  (or 'NOT IN')
-	                 * it's an operator
-	                 */
-	                state.tokenvec[left].type = TYPE_OPERATOR;
-	            } else {
-	                /*
-	                 * it's a nothing
-	                 */
-	                state.tokenvec[left].type = TYPE_BAREWORD;
-	            }
+				if (state.tokenvec[left + 1].type == TYPE_LEFTPARENS) {
+					/*
+					 * got .... IN ( ... (or 'NOT IN') it's an operator
+					 */
+					state.tokenvec[left].type = TYPE_OPERATOR;
+				} else {
+					/*
+					 * it's a nothing
+					 */
+					state.tokenvec[left].type = TYPE_BAREWORD;
+				}
 
-	            /* "IN" can be used as "IN BOOLEAN MODE" for mysql
-	             *  in which case merging of words can be done later
-	             * other wise it acts as an equality operator __ IN (values..)
-	             *
-	             * here we got "IN" "(" so it's an operator.
-	             * also back track to handle "NOT IN"
-	             * might need to do the same with like
-	             * two use cases   "foo" LIKE "BAR" (normal operator)
-	             *  "foo" = LIKE(1,2)
-	             */
-	            continue;
-	        } else if ((state.tokenvec[left].type == TYPE_OPERATOR) && (
-	        		state.tokenvec[left].val.toUpperCase().equals("LIKE") ||
-	        		state.tokenvec[left].val.toUpperCase().equals("NOT LIKE"))) {
-	            if (state.tokenvec[left+1].type == TYPE_LEFTPARENS) {
-	                /* SELECT LIKE(...
-	                 * it's a function
-	                 */
-	                state.tokenvec[left].type = TYPE_FUNCTION;
-	            }
-	        } else if (state.tokenvec[left].type == TYPE_SQLTYPE &&
-	                   (state.tokenvec[left+1].type == TYPE_BAREWORD ||
-	                    state.tokenvec[left+1].type == TYPE_NUMBER ||
-	                    state.tokenvec[left+1].type == TYPE_SQLTYPE ||
-	                    state.tokenvec[left+1].type == TYPE_LEFTPARENS ||
-	                    state.tokenvec[left+1].type == TYPE_FUNCTION ||
-	                    state.tokenvec[left+1].type == TYPE_VARIABLE ||
-	                    state.tokenvec[left+1].type == TYPE_STRING))  {
-	            //st_copy(&state.tokenvec[left], &state.tokenvec[left+1]);
-	        	state.tokenvec[left] = state.tokenvec[left+1];
-	            pos -= 1;
-	            state.stats_folds += 1;
-	            left = 0;
-	            continue;
-	        } else if (state.tokenvec[left].type == TYPE_COLLATE &&
-	                   state.tokenvec[left+1].type == TYPE_BAREWORD) {
-	            /*
-	             * there are too many collation types.. so if the bareword has a "_"
-	             * then it's TYPE_SQLTYPE
-	             */
-	            //if (strchr(state.tokenvec[left+1].val, '_') != NULL) {
-	        	if (state.tokenvec[left+1].val.indexOf('_') != -1) {
-	                state.tokenvec[left+1].type = TYPE_SQLTYPE;
-	                left = 0;
-	            }
-	        } else if (state.tokenvec[left].type == TYPE_BACKSLASH) {
-	            if (token_is_arithmetic_op(state.tokenvec[left+1])) {
-	                /* very weird case in TSQL where '\%1' is parsed as '0 % 1', etc */
-	                state.tokenvec[left].type = TYPE_NUMBER;
-	            } else {
-	                /* just ignore it.. Again T-SQL seems to parse \1 as "1" */
-	                //st_copy(&state.tokenvec[left], &state.tokenvec[left+1]);
-	            	state.tokenvec[left] = state.tokenvec[left+1];
-	                pos -= 1;
-	                state.stats_folds += 1;
-	            }
-	            left = 0;
-	            continue;
-	        } else if (state.tokenvec[left].type == TYPE_LEFTPARENS &&
-	                   state.tokenvec[left+1].type == TYPE_LEFTPARENS) {
-	            pos -= 1;
-	            left = 0;
-	            state.stats_folds += 1;
-	            continue;
-	        } else if (state.tokenvec[left].type == TYPE_RIGHTPARENS &&
-	                   state.tokenvec[left+1].type == TYPE_RIGHTPARENS) {
-	            pos -= 1;
-	            left = 0;
-	            state.stats_folds += 1;
-	            continue;
-	        } else if (state.tokenvec[left].type == TYPE_LEFTBRACE &&
-	                   state.tokenvec[left+1].type == TYPE_BAREWORD) {
+				/*
+				 * "IN" can be used as "IN BOOLEAN MODE" for mysql in which case
+				 * merging of words can be done later other wise it acts as an
+				 * equality operator __ IN (values..)
+				 *
+				 * here we got "IN" "(" so it's an operator. also back track to
+				 * handle "NOT IN" might need to do the same with like two use
+				 * cases "foo" LIKE "BAR" (normal operator) "foo" = LIKE(1,2)
+				 */
+				continue;
+			} else if ((state.tokenvec[left].type == TYPE_OPERATOR)
+					&& (state.tokenvec[left].val.toUpperCase().equals("LIKE")
+							|| state.tokenvec[left].val.toUpperCase().equals("NOT LIKE"))) {
+				if (state.tokenvec[left + 1].type == TYPE_LEFTPARENS) {
+					/*
+					 * SELECT LIKE(... it's a function
+					 */
+					state.tokenvec[left].type = TYPE_FUNCTION;
+				}
+			} else if (state.tokenvec[left].type == TYPE_SQLTYPE && (state.tokenvec[left + 1].type == TYPE_BAREWORD
+					|| state.tokenvec[left + 1].type == TYPE_NUMBER || state.tokenvec[left + 1].type == TYPE_SQLTYPE
+					|| state.tokenvec[left + 1].type == TYPE_LEFTPARENS
+					|| state.tokenvec[left + 1].type == TYPE_FUNCTION || state.tokenvec[left + 1].type == TYPE_VARIABLE
+					|| state.tokenvec[left + 1].type == TYPE_STRING)) {
+				// st_copy(&state.tokenvec[left], &state.tokenvec[left+1]);
+				state.tokenvec[left] = state.tokenvec[left + 1];
+				pos -= 1;
+				state.stats_folds += 1;
+				left = 0;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_COLLATE && state.tokenvec[left + 1].type == TYPE_BAREWORD) {
+				/*
+				 * there are too many collation types.. so if the bareword has a
+				 * "_" then it's TYPE_SQLTYPE
+				 */
+				// if (strchr(state.tokenvec[left+1].val, '_') != NULL) {
+				if (state.tokenvec[left + 1].val.indexOf('_') != -1) {
+					state.tokenvec[left + 1].type = TYPE_SQLTYPE;
+					left = 0;
+				}
+			} else if (state.tokenvec[left].type == TYPE_BACKSLASH) {
+				if (token_is_arithmetic_op(state.tokenvec[left + 1])) {
+					/*
+					 * very weird case in TSQL where '\%1' is parsed as '0 % 1',
+					 * etc
+					 */
+					state.tokenvec[left].type = TYPE_NUMBER;
+				} else {
+					/* just ignore it.. Again T-SQL seems to parse \1 as "1" */
+					// st_copy(&state.tokenvec[left], &state.tokenvec[left+1]);
+					state.tokenvec[left] = state.tokenvec[left + 1];
+					pos -= 1;
+					state.stats_folds += 1;
+				}
+				left = 0;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_LEFTPARENS
+					&& state.tokenvec[left + 1].type == TYPE_LEFTPARENS) {
+				pos -= 1;
+				left = 0;
+				state.stats_folds += 1;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_RIGHTPARENS
+					&& state.tokenvec[left + 1].type == TYPE_RIGHTPARENS) {
+				pos -= 1;
+				left = 0;
+				state.stats_folds += 1;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_LEFTBRACE && state.tokenvec[left + 1].type == TYPE_BAREWORD) {
 
-	            /*
-	             * MySQL Degenerate case --
-	             *
-	             *   select { ``.``.id };  -- valid !!!
-	             *   select { ``.``.``.id };  -- invalid
-	             *   select ``.``.id; -- invalid
-	             *   select { ``.id }; -- invalid
-	             *
-	             * so it appears {``.``.id} is a magic case
-	             * I suspect this is "current database, current table, field id"
-	             *
-	             * The folding code can't look at more than 3 tokens, and
-	             * I don't want to make two passes.
-	             *
-	             * Since "{ ``" so rare, we are just going to blacklist it.
-	             *
-	             * Highly likely this will need revisiting!
-	             *
-	             * CREDIT @rsalgado 2013-11-25
-	             */
-	            if (state.tokenvec[left+1].len == 0) {
-	                state.tokenvec[left+1].type = TYPE_EVIL;
-	                return (int)(left+2);
-	            }
-	            /* weird ODBC / MYSQL  {foo expr} --> expr
-	             * but for this rule we just strip away the "{ foo" part
-	             */
-	            left = 0;
-	            pos -= 2;
-	            state.stats_folds += 2;
-	            continue;
-	        } else if (state.tokenvec[left+1].type == TYPE_RIGHTBRACE) {
-	            pos -= 1;
-	            left = 0;
-	            state.stats_folds += 1;
-	            continue;
-	        }
+				/*
+				 * MySQL Degenerate case --
+				 *
+				 * select { ``.``.id }; -- valid !!! select { ``.``.``.id }; --
+				 * invalid select ``.``.id; -- invalid select { ``.id }; --
+				 * invalid
+				 *
+				 * so it appears {``.``.id} is a magic case I suspect this is
+				 * "current database, current table, field id"
+				 *
+				 * The folding code can't look at more than 3 tokens, and I
+				 * don't want to make two passes.
+				 *
+				 * Since "{ ``" so rare, we are just going to blacklist it.
+				 *
+				 * Highly likely this will need revisiting!
+				 *
+				 * CREDIT @rsalgado 2013-11-25
+				 */
+				if (state.tokenvec[left + 1].len == 0) {
+					state.tokenvec[left + 1].type = TYPE_EVIL;
+					return (int) (left + 2);
+				}
+				/*
+				 * weird ODBC / MYSQL {foo expr} --> expr but for this rule we
+				 * just strip away the "{ foo" part
+				 */
+				left = 0;
+				pos -= 2;
+				state.stats_folds += 2;
+				continue;
+			} else if (state.tokenvec[left + 1].type == TYPE_RIGHTBRACE) {
+				pos -= 1;
+				left = 0;
+				state.stats_folds += 1;
+				continue;
+			}
 
-	        
-/* --------------------------------------------------------------------------------------*/
+			/*
+			 * -----------------------------------------------------------------
+			 * ---------------------
+			 */
 
 			/*
 			 * all cases of handling 2 tokens is done and nothing matched. Get
@@ -429,163 +509,149 @@ public class Libinjection {
 				continue;
 			}
 
-/* ------------------------------------------------Three token folding. Take a deeper look   -------------------------------------------*/
-			
-	        if (state.tokenvec[left].type == TYPE_NUMBER &&
-	                state.tokenvec[left+1].type == TYPE_OPERATOR &&
-	                state.tokenvec[left+2].type == TYPE_NUMBER) {
-	                pos -= 2;
-	                left = 0;
-	                continue;
-	            } else if (state.tokenvec[left].type == TYPE_OPERATOR &&
-	                       state.tokenvec[left+1].type != TYPE_LEFTPARENS &&
-	                       state.tokenvec[left+2].type == TYPE_OPERATOR) {
-	                left = 0;
-	                pos -= 2;
-	                continue;
-	            } else if (state.tokenvec[left].type == TYPE_LOGIC_OPERATOR &&
-	                       state.tokenvec[left+2].type == TYPE_LOGIC_OPERATOR) {
-	                pos -= 2;
-	                left = 0;
-	                continue;
-	            } else if (state.tokenvec[left].type == TYPE_VARIABLE &&
-	                       state.tokenvec[left+1].type == TYPE_OPERATOR &&
-	                       (state.tokenvec[left+2].type == TYPE_VARIABLE ||
-	                        state.tokenvec[left+2].type == TYPE_NUMBER ||
-	                        state.tokenvec[left+2].type == TYPE_BAREWORD)) {
-	                pos -= 2;
-	                left = 0;
-	                continue;
-	            } else if ((state.tokenvec[left].type == TYPE_BAREWORD ||
-	                        state.tokenvec[left].type == TYPE_NUMBER ) &&
-	                       state.tokenvec[left+1].type == TYPE_OPERATOR &&
-	                       (state.tokenvec[left+2].type == TYPE_NUMBER ||
-	                        state.tokenvec[left+2].type == TYPE_BAREWORD)) {
-	                pos -= 2;
-	                left = 0;
-	                continue;
-	            } else if ((state.tokenvec[left].type == TYPE_BAREWORD ||
-	                        state.tokenvec[left].type == TYPE_NUMBER ||
-	                        state.tokenvec[left].type == TYPE_VARIABLE ||
-	                        state.tokenvec[left].type == TYPE_STRING) &&
-	                       state.tokenvec[left+1].type == TYPE_OPERATOR &&
-	                       //streq(state.tokenvec[left+1].val, "::") &&
-	                       state.tokenvec[left+1].val.equals("::") &&
-	                       state.tokenvec[left+2].type == TYPE_SQLTYPE) {
-	                pos -= 2;
-	                left = 0;
-	                state.stats_folds += 2;
-	                continue;
-	            } else if ((state.tokenvec[left].type == TYPE_BAREWORD ||
-	                        state.tokenvec[left].type == TYPE_NUMBER ||
-	                        state.tokenvec[left].type == TYPE_STRING ||
-	                        state.tokenvec[left].type == TYPE_VARIABLE) &&
-	                       state.tokenvec[left+1].type == TYPE_COMMA &&
-	                       (state.tokenvec[left+2].type == TYPE_NUMBER ||
-	                        state.tokenvec[left+2].type == TYPE_BAREWORD ||
-	                        state.tokenvec[left+2].type == TYPE_STRING ||
-	                        state.tokenvec[left+2].type == TYPE_VARIABLE)) {
-	                pos -= 2;
-	                left = 0;
-	                continue;
-	            } else if ((state.tokenvec[left].type == TYPE_EXPRESSION ||
-	                        state.tokenvec[left].type == TYPE_GROUP ||
-	                        state.tokenvec[left].type == TYPE_COMMA) &&
-	                       token_is_unary_op(state.tokenvec[left+1]) &&
-	                       state.tokenvec[left+2].type == TYPE_LEFTPARENS) {
-	                /* got something like SELECT + (, LIMIT + (
-	                 * remove unary operator
-	                 */
-	                //st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
-	            	state.tokenvec[left+1] = state.tokenvec[left+2];
-	                pos -= 1;
-	                left = 0;
-	                continue;
-	            } else if ((state.tokenvec[left].type == TYPE_KEYWORD ||
-	                        state.tokenvec[left].type == TYPE_EXPRESSION ||
-	                        state.tokenvec[left].type == TYPE_GROUP )  &&
-	                       token_is_unary_op(state.tokenvec[left+1]) &&
-	                       (state.tokenvec[left+2].type == TYPE_NUMBER ||
-	                        state.tokenvec[left+2].type == TYPE_BAREWORD ||
-	                        state.tokenvec[left+2].type == TYPE_VARIABLE ||
-	                        state.tokenvec[left+2].type == TYPE_STRING ||
-	                        state.tokenvec[left+2].type == TYPE_FUNCTION )) {
-	                /* remove unary operators
-	                 * select - 1
-	                 */
-	                //st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
-	            	state.tokenvec[left+1] = state.tokenvec[left+2];
-	                pos -= 1;
-	                left = 0;
-	                continue;
-	            } else if (state.tokenvec[left].type == TYPE_COMMA &&
-	                       token_is_unary_op(state.tokenvec[left+1]) &&
-	                       (state.tokenvec[left+2].type == TYPE_NUMBER ||
-	                        state.tokenvec[left+2].type == TYPE_BAREWORD ||
-	                        state.tokenvec[left+2].type == TYPE_VARIABLE ||
-	                        state.tokenvec[left+2].type == TYPE_STRING)) {
-	                /*
-	                 * interesting case    turn ", -1"  ->> ",1" PLUS we need to back up
-	                 * one token if possible to see if more folding can be done
-	                 * "1,-1" --> "1"
-	                 */
-	                //st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
-	            	state.tokenvec[left+1] = state.tokenvec[left+2];
-	                left = 0;
-	                /* pos is >= 3 so this is safe */
-	                assert(pos >= 3);
-	                pos -= 3;
-	                continue;
-	            } else if (state.tokenvec[left].type == TYPE_COMMA &&
-	                       token_is_unary_op(state.tokenvec[left+1]) &&
-	                       state.tokenvec[left+2].type == TYPE_FUNCTION) {
+			/*
+			 * ------------------------------------------------Three token
+			 * folding. Take a deeper look
+			 * -------------------------------------------
+			 */
 
-	                /* Separate case from above since you end up with
-	                 * 1,-sin(1) --> 1 (1)
-	                 * Here, just do
-	                 * 1,-sin(1) --> 1,sin(1)
-	                 * just remove unary operator
-	                 */
-	                //st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
-	            	state.tokenvec[left+1] = state.tokenvec[left+2];
-	                pos -= 1;
-	                left = 0;
-	                continue;
-	            } else if ((state.tokenvec[left].type == TYPE_BAREWORD) &&
-	                       (state.tokenvec[left+1].type == TYPE_DOT) &&
-	                       (state.tokenvec[left+2].type == TYPE_BAREWORD)) {
-	                /* ignore the '.n'
-	                 * typically is this databasename.table
-	                 */
-	                assert(pos >= 3);
-	                pos -= 2;
-	                left = 0;
-	                continue;
-	            } else if ((state.tokenvec[left].type == TYPE_EXPRESSION) &&
-	                       (state.tokenvec[left+1].type == TYPE_DOT) &&
-	                       (state.tokenvec[left+2].type == TYPE_BAREWORD)) {
-	                /* select . `foo` --> select `foo` */
-	                //st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
-	            	state.tokenvec[left+1] = state.tokenvec[left+2];
-	                pos -= 1;
-	                left = 0;
-	                continue;
-	            } else if ((state.tokenvec[left].type == TYPE_FUNCTION) &&
-	                       (state.tokenvec[left+1].type == TYPE_LEFTPARENS) &&
-	                       (state.tokenvec[left+2].type != TYPE_RIGHTPARENS)) {
-	                /*
-	                 * whats going on here
-	                 * Some SQL functions like USER() have 0 args
-	                 * if we get User(foo), then User is not a function
-	                 * This should be expanded since it eliminated a lot of false
-	                 * positives. 
-	                 */
-	                if  (state.tokenvec[left].val.toUpperCase().equals("USER")) {
-	                    state.tokenvec[left].type = TYPE_BAREWORD;
-	                }
-	            }
-			
-/* --------------------------------------------------------------------------------------------------------------------------------------------------------*/
+			if (state.tokenvec[left].type == TYPE_NUMBER && state.tokenvec[left + 1].type == TYPE_OPERATOR
+					&& state.tokenvec[left + 2].type == TYPE_NUMBER) {
+				pos -= 2;
+				left = 0;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_OPERATOR && state.tokenvec[left + 1].type != TYPE_LEFTPARENS
+					&& state.tokenvec[left + 2].type == TYPE_OPERATOR) {
+				left = 0;
+				pos -= 2;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_LOGIC_OPERATOR
+					&& state.tokenvec[left + 2].type == TYPE_LOGIC_OPERATOR) {
+				pos -= 2;
+				left = 0;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_VARIABLE && state.tokenvec[left + 1].type == TYPE_OPERATOR
+					&& (state.tokenvec[left + 2].type == TYPE_VARIABLE || state.tokenvec[left + 2].type == TYPE_NUMBER
+							|| state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
+				pos -= 2;
+				left = 0;
+				continue;
+			} else if ((state.tokenvec[left].type == TYPE_BAREWORD || state.tokenvec[left].type == TYPE_NUMBER)
+					&& state.tokenvec[left + 1].type == TYPE_OPERATOR && (state.tokenvec[left + 2].type == TYPE_NUMBER
+							|| state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
+				pos -= 2;
+				left = 0;
+				continue;
+			} else if ((state.tokenvec[left].type == TYPE_BAREWORD || state.tokenvec[left].type == TYPE_NUMBER
+					|| state.tokenvec[left].type == TYPE_VARIABLE || state.tokenvec[left].type == TYPE_STRING)
+					&& state.tokenvec[left + 1].type == TYPE_OPERATOR &&
+					// streq(state.tokenvec[left+1].val, "::") &&
+					state.tokenvec[left + 1].val.equals("::") && state.tokenvec[left + 2].type == TYPE_SQLTYPE) {
+				pos -= 2;
+				left = 0;
+				state.stats_folds += 2;
+				continue;
+			} else if ((state.tokenvec[left].type == TYPE_BAREWORD || state.tokenvec[left].type == TYPE_NUMBER
+					|| state.tokenvec[left].type == TYPE_STRING || state.tokenvec[left].type == TYPE_VARIABLE)
+					&& state.tokenvec[left + 1].type == TYPE_COMMA
+					&& (state.tokenvec[left + 2].type == TYPE_NUMBER || state.tokenvec[left + 2].type == TYPE_BAREWORD
+							|| state.tokenvec[left + 2].type == TYPE_STRING
+							|| state.tokenvec[left + 2].type == TYPE_VARIABLE)) {
+				pos -= 2;
+				left = 0;
+				continue;
+			} else if ((state.tokenvec[left].type == TYPE_EXPRESSION || state.tokenvec[left].type == TYPE_GROUP
+					|| state.tokenvec[left].type == TYPE_COMMA) && token_is_unary_op(state.tokenvec[left + 1])
+					&& state.tokenvec[left + 2].type == TYPE_LEFTPARENS) {
+				/*
+				 * got something like SELECT + (, LIMIT + ( remove unary
+				 * operator
+				 */
+				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
+				state.tokenvec[left + 1] = state.tokenvec[left + 2];
+				pos -= 1;
+				left = 0;
+				continue;
+			} else if ((state.tokenvec[left].type == TYPE_KEYWORD || state.tokenvec[left].type == TYPE_EXPRESSION
+					|| state.tokenvec[left].type == TYPE_GROUP)
+					&& token_is_unary_op(state.tokenvec[left + 1])
+					&& (state.tokenvec[left + 2].type == TYPE_NUMBER || state.tokenvec[left + 2].type == TYPE_BAREWORD
+							|| state.tokenvec[left + 2].type == TYPE_VARIABLE
+							|| state.tokenvec[left + 2].type == TYPE_STRING
+							|| state.tokenvec[left + 2].type == TYPE_FUNCTION)) {
+				/*
+				 * remove unary operators select - 1
+				 */
+				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
+				state.tokenvec[left + 1] = state.tokenvec[left + 2];
+				pos -= 1;
+				left = 0;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_COMMA && token_is_unary_op(state.tokenvec[left + 1])
+					&& (state.tokenvec[left + 2].type == TYPE_NUMBER || state.tokenvec[left + 2].type == TYPE_BAREWORD
+							|| state.tokenvec[left + 2].type == TYPE_VARIABLE
+							|| state.tokenvec[left + 2].type == TYPE_STRING)) {
+				/*
+				 * interesting case turn ", -1" ->> ",1" PLUS we need to back up
+				 * one token if possible to see if more folding can be done
+				 * "1,-1" --> "1"
+				 */
+				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
+				state.tokenvec[left + 1] = state.tokenvec[left + 2];
+				left = 0;
+				/* pos is >= 3 so this is safe */
+				assert (pos >= 3);
+				pos -= 3;
+				continue;
+			} else if (state.tokenvec[left].type == TYPE_COMMA && token_is_unary_op(state.tokenvec[left + 1])
+					&& state.tokenvec[left + 2].type == TYPE_FUNCTION) {
+
+				/*
+				 * Separate case from above since you end up with 1,-sin(1) -->
+				 * 1 (1) Here, just do 1,-sin(1) --> 1,sin(1) just remove unary
+				 * operator
+				 */
+				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
+				state.tokenvec[left + 1] = state.tokenvec[left + 2];
+				pos -= 1;
+				left = 0;
+				continue;
+			} else if ((state.tokenvec[left].type == TYPE_BAREWORD) && (state.tokenvec[left + 1].type == TYPE_DOT)
+					&& (state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
+				/*
+				 * ignore the '.n' typically is this databasename.table
+				 */
+				assert (pos >= 3);
+				pos -= 2;
+				left = 0;
+				continue;
+			} else if ((state.tokenvec[left].type == TYPE_EXPRESSION) && (state.tokenvec[left + 1].type == TYPE_DOT)
+					&& (state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
+				/* select . `foo` --> select `foo` */
+				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
+				state.tokenvec[left + 1] = state.tokenvec[left + 2];
+				pos -= 1;
+				left = 0;
+				continue;
+			} else if ((state.tokenvec[left].type == TYPE_FUNCTION)
+					&& (state.tokenvec[left + 1].type == TYPE_LEFTPARENS)
+					&& (state.tokenvec[left + 2].type != TYPE_RIGHTPARENS)) {
+				/*
+				 * whats going on here Some SQL functions like USER() have 0
+				 * args if we get User(foo), then User is not a function This
+				 * should be expanded since it eliminated a lot of false
+				 * positives.
+				 */
+				if (state.tokenvec[left].val.toUpperCase().equals("USER")) {
+					state.tokenvec[left].type = TYPE_BAREWORD;
+				}
+			}
+
+			/*
+			 * -----------------------------------------------------------------
+			 * -----------------------------------------------------------------
+			 * ----------------------
+			 */
 
 			/*
 			 * assume left-most token is good, now use the existing 2 tokens --
@@ -615,22 +681,7 @@ public class Libinjection {
 		return left;
 	}
 
-	/** See if two tokens can be merged since they are compound SQL phrases.
-	 *
-	 * This takes two tokens, and, if they are the right type,
-	 * merges their values together.  Then checks to see if the
-	 * new value is special using the PHRASES mapping.
-	 *
-	 * Example: "UNION" + "ALL" ==> "UNION ALL"
-	 *
-	 * C Security Notes: this is safe to use C-strings (null-terminated)
-	 *  since the types involved by definition do not have embedded nulls
-	 *  (e.g. there is no keyword with embedded null)
-	 *
-	 * Porting Notes: since this is C, it's oddly complicated.
-	 *  This is just:  multikeywords[token.value + ' ' + token2.value]
-	 *
-	 */
+
 	// Tokenize, return whether there are more characters to tokenize
 
 	boolean libinjection_sqli_tokenize(State state) {
@@ -651,265 +702,347 @@ public class Libinjection {
 			char ch = s.charAt(pos); // current character
 			// parse and tokenize character
 			switch (ch) {
-			 case 0 : pos = parse_white(state); break; /* 0 */
-			 case 1 : pos = parse_white(state); break; /* 1 */
-			 case 2 : pos = parse_white(state); break; /* 2 */
-			 case 3 : pos = parse_white(state); break; /* 3 */
-			 case 4 : pos = parse_white(state); break; /* 4 */
-			 case 5 : pos = parse_white(state); break; /* 5 */
-			 case 6 : pos = parse_white(state); break; /* 6 */
-			 case 7 : pos = parse_white(state); break; /* 7 */
-			 case 8 : pos = parse_white(state); break; /* 8 */
-			 case 9 : pos = parse_white(state); break; /* 9 */
-			 case 10 : pos = parse_white(state); break; /* 10 */
-			 case 11 : pos = parse_white(state); break; /* 11 */
-			 case 12 : pos = parse_white(state); break; /* 12 */
-			 case 13 : pos = parse_white(state); break; /* 13 */
-			 case 14 : pos = parse_white(state); break; /* 14 */
-			 case 15 : pos = parse_white(state); break; /* 15 */
-			 case 16 : pos = parse_white(state); break; /* 16 */
-			 case 17 : pos = parse_white(state); break; /* 17 */
-			 case 18 : pos = parse_white(state); break; /* 18 */
-			 case 19 : pos = parse_white(state); break; /* 19 */
-			 case 20 : pos = parse_white(state); break; /* 20 */
-			 case 21 : pos = parse_white(state); break; /* 21 */
-			 case 22 : pos = parse_white(state); break; /* 22 */
-			 case 23 : pos = parse_white(state); break; /* 23 */
-			 case 24 : pos = parse_white(state); break; /* 24 */
-			 case 25 : pos = parse_white(state); break; /* 25 */
-			 case 26 : pos = parse_white(state); break; /* 26 */
-			 case 27 : pos = parse_white(state); break; /* 27 */
-			 case 28 : pos = parse_white(state); break; /* 28 */
-			 case 29 : pos = parse_white(state); break; /* 29 */
-			 case 30 : pos = parse_white(state); break; /* 30 */
-			 case 31 : pos = parse_white(state); break; /* 31 */
-			 case 32 : pos = parse_white(state); break; /* 32 */
-			// case 33 : pos = parse_operator2(state); break; /* 33 */
-			// case 34 : pos = parse_string(state); break; /* 34 */
-			// case 35 : pos = parse_hash(state); break; /* 35 */
-			// case 36 : pos = parse_money(state); break; /* 36 */
-			// case 37 : pos = parse_operator1(state); break; /* 37 */
-			// case 38 : pos = parse_operator2(state); break; /* 38 */
-			// case 39 : pos = parse_string(state); break; /* 39 */
-			case 40 : pos = parse_char(state); break; /* 40 */
-			case 41 : pos = parse_char(state); break; /* 41 */
-			// case 42 : pos = parse_operator2(state); break; /* 42 */
-			// case 43 : pos = parse_operator1(state); break; /* 43 */
-			case 44 : pos = parse_char(state); break; /* 44 */
-			// case 45 : pos = parse_dash(state); break; /* 45 */
-			// case 46 : pos = parse_number(state); break; /* 46 */
-			// case 47 : pos = parse_slash(state); break; /* 47 */
-			// case 48 : pos = parse_number(state); break; /* 48 */
-			// case 49 : pos = parse_number(state); break; /* 49 */
-			// case 50 : pos = parse_number(state); break; /* 50 */
-			// case 51 : pos = parse_number(state); break; /* 51 */
-			// case 52 : pos = parse_number(state); break; /* 52 */
-			// case 53 : pos = parse_number(state); break; /* 53 */
-			// case 54 : pos = parse_number(state); break; /* 54 */
-			// case 55 : pos = parse_number(state); break; /* 55 */
-			// case 56 : pos = parse_number(state); break; /* 56 */
-			// case 57 : pos = parse_number(state); break; /* 57 */
-			// case 58 : pos = parse_operator2(state); break; /* 58 */
-			case 59 : pos = parse_char(state); break; /* 59 */
-			// case 60 : pos = parse_operator2(state); break; /* 60 */
-			// case 61 : pos = parse_operator2(state); break; /* 61 */
-			// case 62 : pos = parse_operator2(state); break; /* 62 */
-			// case 63 : pos = parse_other(state); break; /* 63 */
-			// case 64 : pos = parse_var(state); break; /* 64 */
-			// case 65 : pos = parse_word(state); break; /* 65 */
-			// case 66 : pos = parse_bstring(state); break; /* 66 */
-			// case 67 : pos = parse_word(state); break; /* 67 */
-			// case 68 : pos = parse_word(state); break; /* 68 */
-			// case 69 : pos = parse_estring(state); break; /* 69 */
-			// case 70 : pos = parse_word(state); break; /* 70 */
-			// case 71 : pos = parse_word(state); break; /* 71 */
-			// case 72 : pos = parse_word(state); break; /* 72 */
-			// case 73 : pos = parse_word(state); break; /* 73 */
-			// case 74 : pos = parse_word(state); break; /* 74 */
-			// case 75 : pos = parse_word(state); break; /* 75 */
-			// case 76 : pos = parse_word(state); break; /* 76 */
-			// case 77 : pos = parse_word(state); break; /* 77 */
-			// case 78 : pos = parse_nqstring(state); break; /* 78 */
-			// case 79 : pos = parse_word(state); break; /* 79 */
-			// case 80 : pos = parse_word(state); break; /* 80 */
-			// case 81 : pos = parse_qstring(state); break; /* 81 */
-			// case 82 : pos = parse_word(state); break; /* 82 */
-			// case 83 : pos = parse_word(state); break; /* 83 */
-			// case 84 : pos = parse_word(state); break; /* 84 */
-			// case 85 : pos = parse_ustring(state); break; /* 85 */
-			// case 86 : pos = parse_word(state); break; /* 86 */
-			// case 87 : pos = parse_word(state); break; /* 87 */
-			// case 88 : pos = parse_xstring(state); break; /* 88 */
-			// case 89 : pos = parse_word(state); break; /* 89 */
-			// case 90 : pos = parse_word(state); break; /* 90 */
-			// case 91 : pos = parse_bword(state); break; /* 91 */
-			// case 92 : pos = parse_backslash(state); break; /* 92 */
-			// case 93 : pos = parse_other(state); break; /* 93 */
-			// case 94 : pos = parse_operator1(state); break; /* 94 */
-			// case 95 : pos = parse_word(state); break; /* 95 */
-			// case 96 : pos = parse_tick(state); break; /* 96 */
-			// case 97 : pos = parse_word(state); break; /* 97 */
-			// case 98 : pos = parse_bstring(state); break; /* 98 */
-			// case 99 : pos = parse_word(state); break; /* 99 */
-			// case 100: pos = parse_word(state); break; /* 100 */
-			// case 101: pos = parse_estring(state); break; /* 101 */
-			// case 102: pos = parse_word(state); break; /* 102 */
-			// case 103: pos = parse_word(state); break; /* 103 */
-			// case 104: pos = parse_word(state); break; /* 104 */
-			// case 105: pos = parse_word(state); break; /* 105 */
-			// case 106: pos = parse_word(state); break; /* 106 */
-			// case 107: pos = parse_word(state); break; /* 107 */
-			// case 108: pos = parse_word(state); break; /* 108 */
-			// case 109: pos = parse_word(state); break; /* 109 */
-			// case 110: pos = parse_nqstring(state); break; /* 110 */
-			// case 111: pos = parse_word(state); break; /* 111 */
-			// case 112: pos = parse_word(state); break; /* 112 */
-			// case 113: pos = parse_qstring(state); break; /* 113 */
-			// case 114: pos = parse_word(state); break; /* 114 */
-			// case 115: pos = parse_word(state); break; /* 115 */
-			// case 116: pos = parse_word(state); break; /* 116 */
-			// case 117: pos = parse_ustring(state); break; /* 117 */
-			// case 118: pos = parse_word(state); break; /* 118 */
-			// case 119: pos = parse_word(state); break; /* 119 */
-			// case 120: pos = parse_xstring(state); break; /* 120 */
-			// case 121: pos = parse_word(state); break; /* 121 */
-			// case 122: pos = parse_word(state); break; /* 122 */
-			case 123 : pos = parse_char(state); break; /* 123 */
-			// case 124: pos = parse_operator2(state); break; /* 124 */
-			case 125: pos = parse_char(state); break; /* 125 */
-			// case 126: pos = parse_operator1(state); break; /* 126 */
-			case 127: pos = parse_white(state); break; /* 127 */
-			// case 128: pos = parse_word(state); break; /* 128 */
-			// case 129: pos = parse_word(state); break; /* 129 */
-			// case 130: pos = parse_word(state); break; /* 130 */
-			// case 131: pos = parse_word(state); break; /* 131 */
-			// case 132: pos = parse_word(state); break; /* 132 */
-			// case 133: pos = parse_word(state); break; /* 133 */
-			// case 134: pos = parse_word(state); break; /* 134 */
-			// case 135: pos = parse_word(state); break; /* 135 */
-			// case 136: pos = parse_word(state); break; /* 136 */
-			// case 137: pos = parse_word(state); break; /* 137 */
-			// case 138: pos = parse_word(state); break; /* 138 */
-			// case 139: pos = parse_word(state); break; /* 139 */
-			// case 140: pos = parse_word(state); break; /* 140 */
-			// case 141: pos = parse_word(state); break; /* 141 */
-			// case 142: pos = parse_word(state); break; /* 142 */
-			// case 143: pos = parse_word(state); break; /* 143 */
-			// case 144: pos = parse_word(state); break; /* 144 */
-			// case 145: pos = parse_word(state); break; /* 145 */
-			// case 146: pos = parse_word(state); break; /* 146 */
-			// case 147: pos = parse_word(state); break; /* 147 */
-			// case 148: pos = parse_word(state); break; /* 148 */
-			// case 149: pos = parse_word(state); break; /* 149 */
-			// case 150: pos = parse_word(state); break; /* 150 */
-			// case 151: pos = parse_word(state); break; /* 151 */
-			// case 152: pos = parse_word(state); break; /* 152 */
-			// case 153: pos = parse_word(state); break; /* 153 */
-			// case 154: pos = parse_word(state); break; /* 154 */
-			// case 155: pos = parse_word(state); break; /* 155 */
-			// case 156: pos = parse_word(state); break; /* 156 */
-			// case 157: pos = parse_word(state); break; /* 157 */
-			// case 158: pos = parse_word(state); break; /* 158 */
-			// case 159: pos = parse_word(state); break; /* 159 */
-			case 160: pos = parse_white(state); break; /* 160 */
-			// case 161: pos = parse_word(state); break; /* 161 */
-			// case 162: pos = parse_word(state); break; /* 162 */
-			// case 163: pos = parse_word(state); break; /* 163 */
-			// case 164: pos = parse_word(state); break; /* 164 */
-			// case 165: pos = parse_word(state); break; /* 165 */
-			// case 166: pos = parse_word(state); break; /* 166 */
-			// case 167: pos = parse_word(state); break; /* 167 */
-			// case 168: pos = parse_word(state); break; /* 168 */
-			// case 169: pos = parse_word(state); break; /* 169 */
-			// case 170: pos = parse_word(state); break; /* 170 */
-			// case 171: pos = parse_word(state); break; /* 171 */
-			// case 172: pos = parse_word(state); break; /* 172 */
-			// case 173: pos = parse_word(state); break; /* 173 */
-			// case 174: pos = parse_word(state); break; /* 174 */
-			// case 175: pos = parse_word(state); break; /* 175 */
-			// case 176: pos = parse_word(state); break; /* 176 */
-			// case 177: pos = parse_word(state); break; /* 177 */
-			// case 178: pos = parse_word(state); break; /* 178 */
-			// case 179: pos = parse_word(state); break; /* 179 */
-			// case 180: pos = parse_word(state); break; /* 180 */
-			// case 181: pos = parse_word(state); break; /* 181 */
-			// case 182: pos = parse_word(state); break; /* 182 */
-			// case 183: pos = parse_word(state); break; /* 183 */
-			// case 184: pos = parse_word(state); break; /* 184 */
-			// case 185: pos = parse_word(state); break; /* 185 */
-			// case 186: pos = parse_word(state); break; /* 186 */
-			// case 187: pos = parse_word(state); break; /* 187 */
-			// case 188: pos = parse_word(state); break; /* 188 */
-			// case 189: pos = parse_word(state); break; /* 189 */
-			// case 190: pos = parse_word(state); break; /* 190 */
-			// case 191: pos = parse_word(state); break; /* 191 */
-			// case 192: pos = parse_word(state); break; /* 192 */
-			// case 193: pos = parse_word(state); break; /* 193 */
-			// case 194: pos = parse_word(state); break; /* 194 */
-			// case 195: pos = parse_word(state); break; /* 195 */
-			// case 196: pos = parse_word(state); break; /* 196 */
-			// case 197: pos = parse_word(state); break; /* 197 */
-			// case 198: pos = parse_word(state); break; /* 198 */
-			// case 199: pos = parse_word(state); break; /* 199 */
-			// case 200: pos = parse_word(state); break; /* 200 */
-			// case 201: pos = parse_word(state); break; /* 201 */
-			// case 202: pos = parse_word(state); break; /* 202 */
-			// case 203: pos = parse_word(state); break; /* 203 */
-			// case 204: pos = parse_word(state); break; /* 204 */
-			// case 205: pos = parse_word(state); break; /* 205 */
-			// case 206: pos = parse_word(state); break; /* 206 */
-			// case 207: pos = parse_word(state); break; /* 207 */
-			// case 208: pos = parse_word(state); break; /* 208 */
-			// case 209: pos = parse_word(state); break; /* 209 */
-			// case 210: pos = parse_word(state); break; /* 210 */
-			// case 211: pos = parse_word(state); break; /* 211 */
-			// case 212: pos = parse_word(state); break; /* 212 */
-			// case 213: pos = parse_word(state); break; /* 213 */
-			// case 214: pos = parse_word(state); break; /* 214 */
-			// case 215: pos = parse_word(state); break; /* 215 */
-			// case 216: pos = parse_word(state); break; /* 216 */
-			// case 217: pos = parse_word(state); break; /* 217 */
-			// case 218: pos = parse_word(state); break; /* 218 */
-			// case 219: pos = parse_word(state); break; /* 219 */
-			// case 220: pos = parse_word(state); break; /* 220 */
-			// case 221: pos = parse_word(state); break; /* 221 */
-			// case 222: pos = parse_word(state); break; /* 222 */
-			// case 223: pos = parse_word(state); break; /* 223 */
-			// case 224: pos = parse_word(state); break; /* 224 */
-			// case 225: pos = parse_word(state); break; /* 225 */
-			// case 226: pos = parse_word(state); break; /* 226 */
-			// case 227: pos = parse_word(state); break; /* 227 */
-			// case 228: pos = parse_word(state); break; /* 228 */
-			// case 229: pos = parse_word(state); break; /* 229 */
-			// case 230: pos = parse_word(state); break; /* 230 */
-			// case 231: pos = parse_word(state); break; /* 231 */
-			// case 232: pos = parse_word(state); break; /* 232 */
-			// case 233: pos = parse_word(state); break; /* 233 */
-			// case 234: pos = parse_word(state); break; /* 234 */
-			// case 235: pos = parse_word(state); break; /* 235 */
-			// case 236: pos = parse_word(state); break; /* 236 */
-			// case 237: pos = parse_word(state); break; /* 237 */
-			// case 238: pos = parse_word(state); break; /* 238 */
-			// case 239: pos = parse_word(state); break; /* 239 */
-			// case 240: pos = parse_word(state); break; /* 240 */
-			// case 241: pos = parse_word(state); break; /* 241 */
-			// case 242: pos = parse_word(state); break; /* 242 */
-			// case 243: pos = parse_word(state); break; /* 243 */
-			// case 244: pos = parse_word(state); break; /* 244 */
-			// case 245: pos = parse_word(state); break; /* 245 */
-			// case 246: pos = parse_word(state); break; /* 246 */
-			// case 247: pos = parse_word(state); break; /* 247 */
-			// case 248: pos = parse_word(state); break; /* 248 */
-			// case 249: pos = parse_word(state); break; /* 249 */
-			// case 250: pos = parse_word(state); break; /* 250 */
-			// case 251: pos = parse_word(state); break; /* 251 */
-			// case 252: pos = parse_word(state); break; /* 252 */
-			// case 253: pos = parse_word(state); break; /* 253 */
-			// case 254: pos = parse_word(state); break; /* 254 */
-			// case 255: pos = parse_word(state); break; /* 255 */
+			case 0:
+				pos = parse_white(state);
+				break; /* 0 */
+			case 1:
+				pos = parse_white(state);
+				break; /* 1 */
+			case 2:
+				pos = parse_white(state);
+				break; /* 2 */
+			case 3:
+				pos = parse_white(state);
+				break; /* 3 */
+			case 4:
+				pos = parse_white(state);
+				break; /* 4 */
+			case 5:
+				pos = parse_white(state);
+				break; /* 5 */
+			case 6:
+				pos = parse_white(state);
+				break; /* 6 */
+			case 7:
+				pos = parse_white(state);
+				break; /* 7 */
+			case 8:
+				pos = parse_white(state);
+				break; /* 8 */
+			case 9:
+				pos = parse_white(state);
+				break; /* 9 */
+			case 10:
+				pos = parse_white(state);
+				break; /* 10 */
+			case 11:
+				pos = parse_white(state);
+				break; /* 11 */
+			case 12:
+				pos = parse_white(state);
+				break; /* 12 */
+			case 13:
+				pos = parse_white(state);
+				break; /* 13 */
+			case 14:
+				pos = parse_white(state);
+				break; /* 14 */
+			case 15:
+				pos = parse_white(state);
+				break; /* 15 */
+			case 16:
+				pos = parse_white(state);
+				break; /* 16 */
+			case 17:
+				pos = parse_white(state);
+				break; /* 17 */
+			case 18:
+				pos = parse_white(state);
+				break; /* 18 */
+			case 19:
+				pos = parse_white(state);
+				break; /* 19 */
+			case 20:
+				pos = parse_white(state);
+				break; /* 20 */
+			case 21:
+				pos = parse_white(state);
+				break; /* 21 */
+			case 22:
+				pos = parse_white(state);
+				break; /* 22 */
+			case 23:
+				pos = parse_white(state);
+				break; /* 23 */
+			case 24:
+				pos = parse_white(state);
+				break; /* 24 */
+			case 25:
+				pos = parse_white(state);
+				break; /* 25 */
+			case 26:
+				pos = parse_white(state);
+				break; /* 26 */
+			case 27:
+				pos = parse_white(state);
+				break; /* 27 */
+			case 28:
+				pos = parse_white(state);
+				break; /* 28 */
+			case 29:
+				pos = parse_white(state);
+				break; /* 29 */
+			case 30:
+				pos = parse_white(state);
+				break; /* 30 */
+			case 31:
+				pos = parse_white(state);
+				break; /* 31 */
+			case 32:
+				pos = parse_white(state);
+				break; /* 32 */
+			 case 33 : pos = parse_operator2(state); break; /* 33 */
+			 case 34 : pos = parse_string(state); break; /* 34 */
+			 case 35 : pos = parse_hash(state); break; /* 35 */
+			 case 36 : pos = parse_money(state); break; /* 36 */
+			 case 37 : pos = parse_operator1(state); break; /* 37 */
+			 case 38 : pos = parse_operator2(state); break; /* 38 */
+			 case 39 : pos = parse_string(state); break; /* 39 */
+			case 40:
+				pos = parse_char(state);
+				break; /* 40 */
+			case 41:
+				pos = parse_char(state);
+				break; /* 41 */
+			 case 42 : pos = parse_operator2(state); break; /* 42 */
+			 case 43 : pos = parse_operator1(state); break; /* 43 */
+			case 44:
+				pos = parse_char(state);
+				break; /* 44 */
+			 case 45 : pos = parse_dash(state); break; /* 45 */
+			 case 46 : pos = parse_number(state); break; /* 46 */
+			 case 47 : pos = parse_slash(state); break; /* 47 */
+			 case 48 : pos = parse_number(state); break; /* 48 */
+			 case 49 : pos = parse_number(state); break; /* 49 */
+			 case 50 : pos = parse_number(state); break; /* 50 */
+			 case 51 : pos = parse_number(state); break; /* 51 */
+			 case 52 : pos = parse_number(state); break; /* 52 */
+			 case 53 : pos = parse_number(state); break; /* 53 */
+			 case 54 : pos = parse_number(state); break; /* 54 */
+			 case 55 : pos = parse_number(state); break; /* 55 */
+			 case 56 : pos = parse_number(state); break; /* 56 */
+			 case 57 : pos = parse_number(state); break; /* 57 */
+		    case 58 : pos = parse_colon(state); break; /* 58 */
+			case 59:
+				pos = parse_char(state);
+				break; /* 59 */
+			 case 60 : pos = parse_operator2(state); break; /* 60 */
+			 case 61 : pos = parse_operator2(state); break; /* 61 */
+			 case 62 : pos = parse_operator2(state); break; /* 62 */
+			 case 63 : pos = parse_other(state); break; /* 63 */
+			 case 64 : pos = parse_var(state); break; /* 64 */
+			 case 65 : pos = parse_word(state); break; /* 65 */
+			 case 66 : pos = parse_bstring(state); break; /* 66 */
+			 case 67 : pos = parse_word(state); break; /* 67 */
+			 case 68 : pos = parse_word(state); break; /* 68 */
+			 case 69 : pos = parse_estring(state); break; /* 69 */
+			 case 70 : pos = parse_word(state); break; /* 70 */
+			 case 71 : pos = parse_word(state); break; /* 71 */
+			 case 72 : pos = parse_word(state); break; /* 72 */
+			 case 73 : pos = parse_word(state); break; /* 73 */
+			 case 74 : pos = parse_word(state); break; /* 74 */
+			 case 75 : pos = parse_word(state); break; /* 75 */
+			 case 76 : pos = parse_word(state); break; /* 76 */
+			 case 77 : pos = parse_word(state); break; /* 77 */
+			 case 78 : pos = parse_nqstring(state); break; /* 78 */
+			 case 79 : pos = parse_word(state); break; /* 79 */
+			 case 80 : pos = parse_word(state); break; /* 80 */
+			 case 81 : pos = parse_qstring(state); break; /* 81 */
+			 case 82 : pos = parse_word(state); break; /* 82 */
+			 case 83 : pos = parse_word(state); break; /* 83 */
+			 case 84 : pos = parse_word(state); break; /* 84 */
+			 case 85 : pos = parse_ustring(state); break; /* 85 */
+			 case 86 : pos = parse_word(state); break; /* 86 */
+			 case 87 : pos = parse_word(state); break; /* 87 */
+			 case 88 : pos = parse_xstring(state); break; /* 88 */
+			 case 89 : pos = parse_word(state); break; /* 89 */
+			 case 90 : pos = parse_word(state); break; /* 90 */
+			 case 91 : pos = parse_bword(state); break; /* 91 */
+			 case 92 : pos = parse_backslash(state); break; /* 92 */
+			 case 93 : pos = parse_other(state); break; /* 93 */
+			 case 94 : pos = parse_operator1(state); break; /* 94 */
+			 case 95 : pos = parse_word(state); break; /* 95 */
+			 case 96 : pos = parse_tick(state); break; /* 96 */
+			 case 97 : pos = parse_word(state); break; /* 97 */
+			 case 98 : pos = parse_bstring(state); break; /* 98 */
+			 case 99 : pos = parse_word(state); break; /* 99 */
+			 case 100: pos = parse_word(state); break; /* 100 */
+			 case 101: pos = parse_estring(state); break; /* 101 */
+			 case 102: pos = parse_word(state); break; /* 102 */
+			 case 103: pos = parse_word(state); break; /* 103 */
+			 case 104: pos = parse_word(state); break; /* 104 */
+			 case 105: pos = parse_word(state); break; /* 105 */
+			 case 106: pos = parse_word(state); break; /* 106 */
+			 case 107: pos = parse_word(state); break; /* 107 */
+			 case 108: pos = parse_word(state); break; /* 108 */
+			 case 109: pos = parse_word(state); break; /* 109 */
+			 case 110: pos = parse_nqstring(state); break; /* 110 */
+			 case 111: pos = parse_word(state); break; /* 111 */
+			 case 112: pos = parse_word(state); break; /* 112 */
+			 case 113: pos = parse_qstring(state); break; /* 113 */
+			 case 114: pos = parse_word(state); break; /* 114 */
+			 case 115: pos = parse_word(state); break; /* 115 */
+			 case 116: pos = parse_word(state); break; /* 116 */
+			 case 117: pos = parse_ustring(state); break; /* 117 */
+			 case 118: pos = parse_word(state); break; /* 118 */
+			 case 119: pos = parse_word(state); break; /* 119 */
+			 case 120: pos = parse_xstring(state); break; /* 120 */
+			 case 121: pos = parse_word(state); break; /* 121 */
+			 case 122: pos = parse_word(state); break; /* 122 */
+			case 123:
+				pos = parse_char(state);
+				break; /* 123 */
+			 case 124: pos = parse_operator2(state); break; /* 124 */
+			case 125:
+				pos = parse_char(state);
+				break; /* 125 */
+			 case 126: pos = parse_operator1(state); break; /* 126 */
+			case 127:
+				pos = parse_white(state);
+				break; /* 127 */
+			 case 128: pos = parse_word(state); break; /* 128 */
+			 case 129: pos = parse_word(state); break; /* 129 */
+			 case 130: pos = parse_word(state); break; /* 130 */
+			 case 131: pos = parse_word(state); break; /* 131 */
+			 case 132: pos = parse_word(state); break; /* 132 */
+			 case 133: pos = parse_word(state); break; /* 133 */
+			 case 134: pos = parse_word(state); break; /* 134 */
+			 case 135: pos = parse_word(state); break; /* 135 */
+			 case 136: pos = parse_word(state); break; /* 136 */
+			 case 137: pos = parse_word(state); break; /* 137 */
+			 case 138: pos = parse_word(state); break; /* 138 */
+			 case 139: pos = parse_word(state); break; /* 139 */
+			 case 140: pos = parse_word(state); break; /* 140 */
+			 case 141: pos = parse_word(state); break; /* 141 */
+			 case 142: pos = parse_word(state); break; /* 142 */
+			 case 143: pos = parse_word(state); break; /* 143 */
+			 case 144: pos = parse_word(state); break; /* 144 */
+			 case 145: pos = parse_word(state); break; /* 145 */
+			 case 146: pos = parse_word(state); break; /* 146 */
+			 case 147: pos = parse_word(state); break; /* 147 */
+			 case 148: pos = parse_word(state); break; /* 148 */
+			 case 149: pos = parse_word(state); break; /* 149 */
+			 case 150: pos = parse_word(state); break; /* 150 */
+			 case 151: pos = parse_word(state); break; /* 151 */
+			 case 152: pos = parse_word(state); break; /* 152 */
+			 case 153: pos = parse_word(state); break; /* 153 */
+			 case 154: pos = parse_word(state); break; /* 154 */
+			 case 155: pos = parse_word(state); break; /* 155 */
+			 case 156: pos = parse_word(state); break; /* 156 */
+			 case 157: pos = parse_word(state); break; /* 157 */
+			 case 158: pos = parse_word(state); break; /* 158 */
+			 case 159: pos = parse_word(state); break; /* 159 */
+			case 160:
+				pos = parse_white(state);
+				break; /* 160 */
+			 case 161: pos = parse_word(state); break; /* 161 */
+			 case 162: pos = parse_word(state); break; /* 162 */
+			 case 163: pos = parse_word(state); break; /* 163 */
+			 case 164: pos = parse_word(state); break; /* 164 */
+			 case 165: pos = parse_word(state); break; /* 165 */
+			 case 166: pos = parse_word(state); break; /* 166 */
+			 case 167: pos = parse_word(state); break; /* 167 */
+			 case 168: pos = parse_word(state); break; /* 168 */
+			 case 169: pos = parse_word(state); break; /* 169 */
+			 case 170: pos = parse_word(state); break; /* 170 */
+			 case 171: pos = parse_word(state); break; /* 171 */
+			 case 172: pos = parse_word(state); break; /* 172 */
+			 case 173: pos = parse_word(state); break; /* 173 */
+			 case 174: pos = parse_word(state); break; /* 174 */
+			 case 175: pos = parse_word(state); break; /* 175 */
+			 case 176: pos = parse_word(state); break; /* 176 */
+			 case 177: pos = parse_word(state); break; /* 177 */
+			 case 178: pos = parse_word(state); break; /* 178 */
+			 case 179: pos = parse_word(state); break; /* 179 */
+			 case 180: pos = parse_word(state); break; /* 180 */
+			 case 181: pos = parse_word(state); break; /* 181 */
+			 case 182: pos = parse_word(state); break; /* 182 */
+			 case 183: pos = parse_word(state); break; /* 183 */
+			 case 184: pos = parse_word(state); break; /* 184 */
+			 case 185: pos = parse_word(state); break; /* 185 */
+			 case 186: pos = parse_word(state); break; /* 186 */
+			 case 187: pos = parse_word(state); break; /* 187 */
+			 case 188: pos = parse_word(state); break; /* 188 */
+			 case 189: pos = parse_word(state); break; /* 189 */
+			 case 190: pos = parse_word(state); break; /* 190 */
+			 case 191: pos = parse_word(state); break; /* 191 */
+			 case 192: pos = parse_word(state); break; /* 192 */
+			 case 193: pos = parse_word(state); break; /* 193 */
+			 case 194: pos = parse_word(state); break; /* 194 */
+			 case 195: pos = parse_word(state); break; /* 195 */
+			 case 196: pos = parse_word(state); break; /* 196 */
+			 case 197: pos = parse_word(state); break; /* 197 */
+			 case 198: pos = parse_word(state); break; /* 198 */
+			 case 199: pos = parse_word(state); break; /* 199 */
+			 case 200: pos = parse_word(state); break; /* 200 */
+			 case 201: pos = parse_word(state); break; /* 201 */
+			 case 202: pos = parse_word(state); break; /* 202 */
+			 case 203: pos = parse_word(state); break; /* 203 */
+			 case 204: pos = parse_word(state); break; /* 204 */
+			 case 205: pos = parse_word(state); break; /* 205 */
+			 case 206: pos = parse_word(state); break; /* 206 */
+			 case 207: pos = parse_word(state); break; /* 207 */
+			 case 208: pos = parse_word(state); break; /* 208 */
+			 case 209: pos = parse_word(state); break; /* 209 */
+			 case 210: pos = parse_word(state); break; /* 210 */
+			 case 211: pos = parse_word(state); break; /* 211 */
+			 case 212: pos = parse_word(state); break; /* 212 */
+			 case 213: pos = parse_word(state); break; /* 213 */
+			 case 214: pos = parse_word(state); break; /* 214 */
+			 case 215: pos = parse_word(state); break; /* 215 */
+			 case 216: pos = parse_word(state); break; /* 216 */
+			 case 217: pos = parse_word(state); break; /* 217 */
+			 case 218: pos = parse_word(state); break; /* 218 */
+			 case 219: pos = parse_word(state); break; /* 219 */
+			 case 220: pos = parse_word(state); break; /* 220 */
+			 case 221: pos = parse_word(state); break; /* 221 */
+			 case 222: pos = parse_word(state); break; /* 222 */
+			 case 223: pos = parse_word(state); break; /* 223 */
+			 case 224: pos = parse_word(state); break; /* 224 */
+			 case 225: pos = parse_word(state); break; /* 225 */
+			 case 226: pos = parse_word(state); break; /* 226 */
+			 case 227: pos = parse_word(state); break; /* 227 */
+			 case 228: pos = parse_word(state); break; /* 228 */
+			 case 229: pos = parse_word(state); break; /* 229 */
+			 case 230: pos = parse_word(state); break; /* 230 */
+			 case 231: pos = parse_word(state); break; /* 231 */
+			 case 232: pos = parse_word(state); break; /* 232 */
+			 case 233: pos = parse_word(state); break; /* 233 */
+			 case 234: pos = parse_word(state); break; /* 234 */
+			 case 235: pos = parse_word(state); break; /* 235 */
+			 case 236: pos = parse_word(state); break; /* 236 */
+			 case 237: pos = parse_word(state); break; /* 237 */
+			 case 238: pos = parse_word(state); break; /* 238 */
+			 case 239: pos = parse_word(state); break; /* 239 */
+			 case 240: pos = parse_word(state); break; /* 240 */
+			 case 241: pos = parse_word(state); break; /* 241 */
+			 case 242: pos = parse_word(state); break; /* 242 */
+			 case 243: pos = parse_word(state); break; /* 243 */
+			 case 244: pos = parse_word(state); break; /* 244 */
+			 case 245: pos = parse_word(state); break; /* 245 */
+			 case 246: pos = parse_word(state); break; /* 246 */
+			 case 247: pos = parse_word(state); break; /* 247 */
+			 case 248: pos = parse_word(state); break; /* 248 */
+			 case 249: pos = parse_word(state); break; /* 249 */
+			 case 250: pos = parse_word(state); break; /* 250 */
+			 case 251: pos = parse_word(state); break; /* 251 */
+			 case 252: pos = parse_word(state); break; /* 252 */
+			 case 253: pos = parse_word(state); break; /* 253 */
+			 case 254: pos = parse_word(state); break; /* 254 */
+			 case 255: pos = parse_word(state); break; /* 255 */
 			}
 			state.pos = pos;
-
+			
 			if (state.tokenvec[current] != null) {
 				state.stats_tokens += 1;
 				return true;
@@ -919,58 +1052,85 @@ public class Libinjection {
 	}
 
 	/* Parsers */
-	
+	/**
+	 * See if two tokens can be merged since they are compound SQL phrases.
+	 *
+	 * This takes two tokens, and, if they are the right type, merges their
+	 * values together. Then checks to see if the new value is special using the
+	 * PHRASES mapping.
+	 *
+	 * Example: "UNION" + "ALL" ==> "UNION ALL"
+	 *
+	 * C Security Notes: this is safe to use C-strings (null-terminated) since
+	 * the types involved by definition do not have embedded nulls (e.g. there
+	 * is no keyword with embedded null)
+	 *
+	 * Porting Notes: since this is C, it's oddly complicated. This is just:
+	 * multikeywords[token.value + ' ' + token2.value]
+	 *
+	 */
 	boolean syntax_merge_words(State state, Token a, int apos, Token b, int bpos) {
 		String merged;
 		Character wordtype;
-		
-        // first token must not represent any of these types
-	    if (!
-	        (a.type == TYPE_KEYWORD ||
-	         a.type == TYPE_BAREWORD ||
-	         a.type == TYPE_OPERATOR ||
-	         a.type == TYPE_UNION ||
-	         a.type == TYPE_FUNCTION ||
-	         a.type == TYPE_EXPRESSION ||
-	         a.type == TYPE_SQLTYPE)) {
-	        return false;
-	    }
 
-	    // second token must not represent any of these types
-	    if (b.type != TYPE_KEYWORD  && b.type != TYPE_BAREWORD &&
-	        b.type != TYPE_OPERATOR && b.type != TYPE_SQLTYPE &&
-	        b.type != TYPE_LOGIC_OPERATOR &&
-	        b.type != TYPE_FUNCTION &&
-	        b.type != TYPE_UNION    && b.type != TYPE_EXPRESSION) {
-	        return false;
-	    }
-	    
-	    merged = a.val + " " + b.val;
-	    wordtype = libinjection_sqli_lookup_word(merged);
-	    
-	    if (wordtype != null) {
-	    	Token token = new Token(wordtype, a.pos, a.len, merged);
-	    	state.tokenvec[apos] = token;
-	    	// shift down all tokens after b by one index --> dunno if needed since there may not be any tokens after b. take closer look at fold
-	    	for (int i = bpos; i < state.tokenvec.length-1; i++) {
-	    		if (state.tokenvec[i] != null) {
-	    			state.tokenvec[i] = state.tokenvec[i+1];
-	    		} else {
-	    			break;
-	    		}
-	    	}
-	    	return true;
-	    }
-	    else {
-	    	return false;
-	    }
-	    
-	    
+		// first token must not represent any of these types
+		if (!(a.type == TYPE_KEYWORD || a.type == TYPE_BAREWORD || a.type == TYPE_OPERATOR || a.type == TYPE_UNION
+				|| a.type == TYPE_FUNCTION || a.type == TYPE_EXPRESSION || a.type == TYPE_SQLTYPE)) {
+			return false;
+		}
+
+		// second token must not represent any of these types
+		if (b.type != TYPE_KEYWORD && b.type != TYPE_BAREWORD && b.type != TYPE_OPERATOR && b.type != TYPE_SQLTYPE
+				&& b.type != TYPE_LOGIC_OPERATOR && b.type != TYPE_FUNCTION && b.type != TYPE_UNION
+				&& b.type != TYPE_EXPRESSION) {
+			return false;
+		}
+
+		merged = a.val + " " + b.val;
+		wordtype = libinjection_sqli_lookup_word(merged);
+
+		if (wordtype != null) {
+			Token token = new Token(wordtype, a.pos, a.len, merged);
+			state.tokenvec[apos] = token;
+			// shift down all tokens after b by one index --> dunno if needed
+			// since there may not be any tokens after b. take closer look at
+			// fold
+			for (int i = bpos; i < state.tokenvec.length - 1; i++) {
+				if (state.tokenvec[i] != null) {
+					state.tokenvec[i] = state.tokenvec[i + 1];
+				} else {
+					break;
+				}
+			}
+			return true;
+		} else {
+			return false;
+		}
+
 	}
+
 	
-	
+	/*
+	 * Parse Functions
+	 */
 	int parse_white(State state) {
 		return state.pos + 1;
+	}
+
+	int parse_operator1(State state) {
+		String s = state.s;
+		int pos = state.pos;
+		Token token = new Token(TYPE_OPERATOR, pos, 1, String.valueOf(s.charAt(pos)));
+		state.tokenvec[state.current] = token;
+		return pos + 1;
+	}
+
+	int parse_other(State state) {
+		String s = state.s;
+		int pos = state.pos;
+		Token token = new Token(TYPE_UNKNOWN, pos, 1, String.valueOf(s.charAt(pos)));
+		state.tokenvec[state.current] = token;
+		return pos + 1;
 	}
 
 	int parse_char(State state) {
@@ -980,6 +1140,714 @@ public class Libinjection {
 		state.tokenvec[state.current] = token;
 		return pos + 1;
 	}
+	
+	int parse_eol_comment(State state) {
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+		
+		// first occurrence of '\n' starting from pos
+		int endpos = s.indexOf('\n', pos);
+		if (endpos == -1) {
+			Token token = new Token(TYPE_COMMENT, pos, slen - pos, s.substring(pos));
+			state.tokenvec[state.current] = token;
+			return slen;
+		} else {
+			// tokenize from pos to endpos - 1. for example if "abc--\n" then tokenize "--"
+			Token token = new Token(TYPE_COMMENT, pos, endpos - pos, s.substring(pos, endpos));
+			state.tokenvec[state.current] = token;
+			return endpos + 1;
+		}
+	}
+	
+
+   /** In ANSI mode, hash is an operator
+    *  In MYSQL mode, it's a EOL comment like '--'
+    */
+	int parse_hash(State state) {
+		state.stats_comment_hash += 1;
+		if ((state.flags & FLAG_SQL_MYSQL) != 0) {
+			state.stats_comment_hash += 1;
+			return parse_eol_comment(state);
+		} else {
+			Token token = new Token(TYPE_OPERATOR, state.pos, 1, "#");
+			state.tokenvec[state.current] = token;
+			return state.pos + 1;
+		}
+	}
+	
+	int parse_dash(State state) {
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+	    /*
+	     * five cases
+	     * 1) --[white]  this is always a SQL comment
+	     * 2) --[EOF]    this is a comment
+	     * 3) --[notwhite] in MySQL this is NOT a comment but two unary operators
+	     * 4) --[notwhite] everyone else thinks this is a comment
+	     * 5) -[not dash]  '-' is a unary operator
+	     */
+		
+		if (pos + 2 < slen && s.charAt(pos + 1) == '-' && char_is_white(s.charAt(pos + 2))) {
+			return parse_eol_comment(state);
+		} else if (pos + 2 == slen && s.charAt(pos + 1) == '-' ){
+			return parse_eol_comment(state);
+		} else if (pos + 1 < slen && s.charAt(pos + 1) == '-' && (state.flags & FLAG_SQL_ANSI) != 0) {
+			state.stats_comment_ddx += 1;
+			return parse_eol_comment(state);
+		} else {
+			Token token = new Token(TYPE_OPERATOR, pos, 1, String.valueOf('-'));
+			state.tokenvec[state.current] = token;
+			return pos + 1;
+		}
+	}
+	
+	int parse_slash(State state) {
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+		
+		// not a comment
+		if (pos + 1 == slen || s.charAt(pos + 1) != '*') {
+			return parse_operator1(state);
+		}
+		
+		// is a comment
+		int clen;
+		int ctype = TYPE_COMMENT;
+		int cend = s.indexOf("*/", pos + 2); // index of * in */ (we do pos + 2 to skip over /x)
+		
+		if (cend == -1) {
+			clen = slen - pos;
+		} else {
+			clen = (cend + 2) - pos;
+		}
+		
+
+	    /*
+	     * postgresql allows nested comments which makes
+	     * this is incompatible with parsing so
+	     * if we find a '/x' inside the comment, then
+	     * make a new token.
+	     *
+	     * Also, Mysql's "conditional" comments for version
+	     *  are an automatic black ban!
+	     */
+		if (s.substring(pos + 2, cend).contains("/*")) {
+			ctype = TYPE_EVIL;
+		} else if (is_mysql_comment(s, slen, pos)) {
+			ctype = TYPE_EVIL; 
+		}
+		
+		Token token = new Token(ctype, pos, clen, s.substring(pos, cend + 2));
+		state.tokenvec[state.current] = token;
+		return pos + clen;
+	} 
+	
+	int parse_backslash(State state) {
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+
+	    /*
+	     * Weird MySQL alias for NULL, "\N" (capital N only)
+	     */
+		if (pos + 1 < slen && s.charAt(pos + 1) == 'N') {
+			Token token = new Token(TYPE_NUMBER, pos, 2, s.substring(pos, pos + 2));
+			state.tokenvec[state.current] = token;
+			return pos + 2;
+		} else {
+			Token token = new Token(TYPE_BACKSLASH, pos, 1, String.valueOf(s.charAt(pos)));
+			state.tokenvec[state.current] = token;
+			return pos + 1;
+		}
+	}
+	
+	int parse_operator2(State state) {
+		Character ch;
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+		
+		// single operator at end of line
+		if (pos + 1 >= slen) {
+			return parse_operator1(state);
+		}
+		
+		// "<=>"
+		if (pos + 2 < slen && 
+		    s.charAt(pos) == '<' && 
+		    s.charAt(pos + 1) == '=' &&
+		    s.charAt(pos + 2) == '>') {
+	        /*
+	         * special 3-char operator
+	         */
+			Token token = new Token(TYPE_OPERATOR, pos, 3, "<=>");
+			state.tokenvec[state.current] = token;
+			return pos + 3;
+		}
+		
+		// 2-char operators: "-=", "+=", "!!", etc...
+		String operator = s.substring(pos, pos + 2);
+		ch = libinjection_sqli_lookup_word(operator);
+		if (ch != null) {
+			state.tokenvec[state.current] = new Token(ch, pos, 2, operator);
+			return pos + 2;
+		}
+		
+		// must be a 1-char operator
+		return parse_operator1(state);
+	}
+	
+	int parse_colon(State state) {
+		state.tokenvec[state.current] = new Token(TYPE_COLON, state.pos, 1, ":");
+		return state.pos + 1;
+	}
+
+	/* Look forward for doubling of delimiter
+	 *
+	 * case 'foo''bar' --> foo''bar
+	 *
+	 * ending quote isn't duplicated (i.e. escaped)
+	 * since it's the wrong char or EOL
+	 *
+	 */
+	int parse_string_core(State state, char delim, int offset) {
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+		int qpos = s.indexOf(delim, pos + offset); // offset used to skip first quote
+		// real quote if offset > 0, simulated quote if not.
+		char str_open = (offset > 0) ? delim : CHAR_NULL; 
+		
+		while (true) {
+			if (qpos == -1) {
+				// string ended with no trailing quote. add token
+				Token token = new Token(TYPE_STRING, pos + offset, slen - pos - offset, s.substring(pos + offset));
+				token.str_open = str_open;
+				token.str_close = CHAR_NULL;
+				state.tokenvec[state.current] = token;
+				return slen;
+			} else if (is_backslash_escaped(qpos - 1, pos + offset, s)) {
+				qpos = s.indexOf(delim, qpos + 1);
+				continue;
+			} else if (is_double_delim_escaped(qpos, slen, s)) {
+				qpos = s.indexOf(delim, qpos + 2);
+				continue;
+			} else {
+				// quote is closed: it's a normal string.
+				Token token = new Token(TYPE_STRING, pos + offset, qpos - (pos + offset), s.substring(pos + offset, qpos));
+				token.str_open = str_open;
+				token.str_close = delim;
+				state.tokenvec[state.current] = token;
+				return qpos + 1;
+			}
+		}
+	}
+	
+	// Used when first char is ' or "
+	int parse_string(State state) {
+		return parse_string_core(state, state.s.charAt(state.pos), 1);
+	}
+
+	/**
+	 * Used when first char is:
+	 *    N or n:  mysql "National Character set"
+	 *    E     :  psql  "Escaped String"
+	 */
+	int parse_estring(State state) {
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+		
+		if (pos + 2 >= slen || s.charAt(pos + 1) != CHAR_SINGLE) {
+			return parse_word(state);
+		}
+		return parse_string_core(state, CHAR_SINGLE, 2);
+	}
+	
+	int parse_ustring(State state) {
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+		
+		if ( pos + 2 < slen && s.charAt(pos + 1) == '&' && s.charAt(pos + 2) == '\'') {
+			state.pos = state.pos + 2;
+			pos = parse_string(state);
+			state.tokenvec[state.current].str_open = 'u';
+			if (state.tokenvec[state.current].str_close == '\'') {
+				state.tokenvec[state.current].str_close = 'u';
+			}
+			return pos;
+		} else {
+			return parse_word(state);
+		}
+		
+	}
+	
+	int parse_qstring_core(State state, int offset) {
+		char ch;
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos + offset;
+		
+		/* if we are already at end of string..
+		 * if current char is not q or Q
+		 * if we don't have 2 more chars
+		 * if char2 != a single quote
+		 * then, just treat as word
+		 */
+		if (pos >= slen ||
+				(s.charAt(pos) != 'q' && s.charAt(pos) != 'Q') ||
+				pos + 2 >= slen ||
+				s.charAt(pos + 1) != '\'') {
+			return parse_word(state);
+		}
+		
+		ch = s.charAt(pos + 2);
+	    
+		/* the ch > 127 is un-needed since
+	     * we assume char is signed
+	     */
+		if (ch < 33 /* || ch > 127 */) {
+			return parse_word(state);
+		}
+		switch (ch) {
+		case '(' : ch = ')'; break;
+		case '[' : ch = ']'; break;
+		case '{' : ch = '}'; break;
+		case '<' : ch = '>'; break;
+		}
+		
+		String find = String.valueOf(ch) + String.valueOf('\'');  // find )\' or ]\' or }\' or >\'
+		int found = s.indexOf(find, pos + 3);
+		if (found == -1) {
+			Token token = new Token(TYPE_STRING, pos + 3, slen - pos - 3, s.substring(pos + 3));
+			token.str_open = 'q';
+			token.str_close = CHAR_NULL;
+			state.tokenvec[state.current] = token;
+			return slen;
+		} else {
+			Token token = new Token(TYPE_STRING, pos + 3, found - pos - 3, s.substring(pos + 3, found));
+			token.str_open = 'q';
+			token.str_close = 'q';
+			state.tokenvec[state.current] = token;
+			return found + 2; // +2 to skip over )\' or ]'\ or }\' or >\'
+		}
+		
+	}
+	
+	/*
+	 * Oracle's q string
+	 */
+	int parse_qstring(State state) {
+		return parse_qstring_core(state, 0);
+	}
+	
+	/*
+	 * mysql's N'STRING' or
+	 * ...  Oracle's nq string
+	 */
+	int parse_nqstring(State state) {
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+		if (pos + 2 < slen && s.charAt(pos + 1) == CHAR_SINGLE) {
+			return parse_estring(state);
+		}
+		return parse_qstring_core(state, 1);
+	}
+	
+	/*
+	 * binary literal string
+	 * re: [bB]'[01]*'
+	 */
+	int parse_bstring(State state) {
+		int wlen;
+		String s = state.s;
+		int pos = state.pos;
+		int slen = state.slen;
+		
+		/* need at least 2 more characters
+		 * if next char isn't a single quote, then
+		 * continue as normal word
+		 */
+		if ( pos + 2 >= slen || s.charAt(pos + 1) != '\'') {
+			return parse_word(state);
+		}
+		
+		wlen = strlenspn(s.substring(pos + 2), "01");
+		// if [01]* pattern not found, or the pattern did not close with a single quote
+		if (pos + 2 + wlen >= slen || s.charAt(pos + 2 + wlen) != '\'') {
+			return parse_word(state);
+		}
+		// +3 for [bB], starting quote, ending quote. 
+		Token token = new Token(TYPE_NUMBER,  pos, wlen + 3, s.substring(pos,  pos + wlen + 3));  
+		state.tokenvec[state.current] = token;
+		return pos + 2 + wlen + 1;
+	}
+	
+	/*
+	 * hex literal string
+	 * re: [xX]'[0123456789abcdefABCDEF]*'
+	 * mysql has requirement of having EVEN number of chars,
+	 *  but pgsql does not
+	 */
+	int parse_xstring(State state) {
+		int wlen;
+		String s = state.s;
+		int pos = state.pos;
+		int slen = state.slen;
+		
+		/* need at least 2 more characters
+		 * if next char isn't a single quote, then
+		 * continue as normal word
+		 */
+		if ( pos + 2 >= slen || s.charAt(pos + 1) != '\'') {
+			return parse_word(state);
+		}
+		
+		wlen = strlenspn(s.substring(pos + 2), "0123456789abcdefABCDEF");
+		// if [0123456789abcdefABCDEF]* pattern not found, or the pattern did not close with a single quote
+		if (pos + 2 + wlen >= slen || s.charAt(pos + 2 + wlen) != '\'') {
+			return parse_word(state);
+		}
+		// +3 for [xX], starting quote, ending quote. 
+		Token token = new Token(TYPE_NUMBER,  pos, wlen + 3, s.substring(pos,  pos + wlen + 3));  
+		state.tokenvec[state.current] = token;
+		return pos + 2 + wlen + 1;
+	}
+
+	/**
+	 * This handles MS SQLSERVER bracket words
+	 * http://stackoverflow.com/questions/3551284/sql-serverwhat-do-brackets-mean-around-column-name
+	 *
+	 */
+	int parse_bword(State state) {
+		String s = state.s;
+		int pos = state.pos;
+		int endptr = s.indexOf(']', pos);
+		if (endptr == -1) {
+			Token token = new Token(TYPE_BAREWORD, pos, endptr - pos + 1, s.substring(pos, endptr + 1));
+			state.tokenvec[state.current] = token;
+		}
+		return endptr + 1;
+	}
+	
+	int parse_word(State state) {
+		Character wordtype;
+		char delim;
+		String s = state.s;
+		int pos = state.pos;
+		
+		String unaccepted = " []{}<>:\\?=@!#~+-*/&|^%(),';\t\n\\v\f\r\"\240\000";
+		String str = s.substring(pos);
+		int wlen = strlencspn(str, unaccepted);
+		String word = s.substring(pos, pos + wlen);
+		
+		Token token = new Token(TYPE_BAREWORD, pos, wlen, word);
+		state.tokenvec[state.current] = token;
+		
+	    /* look for characters before "." and "`" and see if they're keywords
+	     */
+		for (int i = 0; i < token.len; i++) {
+			delim = token.val.charAt(i);
+			if ( delim == '.' || delim == '`') {
+				wordtype = libinjection_sqli_lookup_word(word.substring(0,i));
+				if (wordtype != null && wordtype != TYPE_NONE && wordtype != TYPE_BAREWORD) {
+	                /*
+	                 * we got something like "SELECT.1"
+	                 * or SELECT`column`
+	                 */
+					state.tokenvec[state.current] = new Token (wordtype, pos, i, word.substring(0,i));
+					return pos + i;
+				}
+			}
+		}
+		
+	    /*
+	     * do normal lookup with word including '.'
+	     */
+//		if (wlen < LIBINJECTION_SQLI_TOKEN_SIZE) {
+		wordtype = libinjection_sqli_lookup_word(token.val);
+		if (wordtype == null) {
+			wordtype = TYPE_BAREWORD;
+		}
+		state.tokenvec[state.current].type = (char) wordtype;
+//	    }
+		return pos + wlen;
+	}
+	
+	int parse_tick(State state) {
+		int pos = parse_string_core(state, CHAR_TICK, 1);
+		
+	    /* we could check to see if start and end of
+	     * of string are both "`", i.e. make sure we have
+	     * matching set.  `foo` vs. `foo
+	     * but I don't think it matters much
+	     */
+
+	    /* check value of string to see if it's a keyword,
+	     * function, operator, etc
+	     */
+		Character wordtype = libinjection_sqli_lookup_word(state.tokenvec[state.current].val);
+		if (wordtype != null && wordtype == TYPE_FUNCTION) {
+			/* if it's a function, then convert to token */
+			state.tokenvec[state.current].type = TYPE_FUNCTION;
+		}
+		else {
+			/* otherwise it's a 'n' type -- mysql treats
+			 * everything as a bare word
+			 */
+			state.tokenvec[state.current].type = TYPE_BAREWORD;
+		}
+		return pos;
+	}
+
+	int parse_var(State state) {
+		int xlen;
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos + 1;
+		
+	    /*
+	     * var_count is only used to reconstruct
+	     * the input.  It counts the number of '@'
+	     * seen 0 in the case of NULL, 1 or 2
+	     */
+
+	    /*
+	     * move past optional other '@'
+	     */
+		if (pos < slen && s.charAt(pos) == '@') {
+			pos += 1;
+			state.tokenvec[state.current].count = 2;
+		} else {
+			state.tokenvec[state.current].count = 1;
+		}
+		
+	    /*
+	     * MySQL allows @@`version`
+	     */
+		if (pos < slen) {
+			if (s.charAt(pos) == '`') {
+				state.pos = pos;
+				pos = parse_tick(state);
+				state.tokenvec[state.current].type = TYPE_VARIABLE;
+				return pos;
+			} else if (s.charAt(pos) == CHAR_SINGLE || s.charAt(pos) == CHAR_DOUBLE) {
+				state.pos = pos;
+				pos = parse_string(state);
+				state.tokenvec[state.current].type = TYPE_VARIABLE;
+				return pos;
+			}
+		}
+		
+		xlen = strlencspn(s.substring(pos),  " <>:\\?=@!#~+-*/&|^%(),';\t\n\\v\f\r'`\"");
+		
+		if (xlen == 0) {
+			Token token = new Token(TYPE_VARIABLE, pos, 0, "");
+			state.tokenvec[state.current] = token;
+			return pos;
+		} else {
+			Token token = new Token(TYPE_VARIABLE, pos, xlen, s.substring(pos, pos + xlen));
+			state.tokenvec[state.current] = token;
+			return pos + xlen;
+		}
+	}
+	
+	int parse_money(State state) {
+		int xlen;
+		int strend;
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+		
+		if (pos + 1 == slen) {
+			/* end of line */
+			state.tokenvec[state.current] = new Token(TYPE_BAREWORD, pos, 1, "$");
+			return slen;
+		}
+		
+	    /*
+	     * $1,000.00 or $1.000,00 ok!
+	     * This also parses $....,,,111 but that's ok
+	     */
+		xlen = strlenspn(s.substring(pos + 1), "0123456789.,");
+		if (xlen == 0) {
+			if (s.charAt(pos + 1) == '$') {
+				/* we have $$ .. find ending $$ and make string */
+				strend = s.indexOf("$$", pos + 2);
+				if (strend == -1) {
+					/* fell off edge: $$ not found */
+					Token token = new Token(TYPE_STRING, pos + 2, slen - (pos + 2), s.substring(pos + 2));
+					token.str_open = '$';
+					token.str_close = CHAR_NULL;
+					return slen;
+				} else {
+					Token token = new Token(TYPE_STRING, pos + 2, strend - (pos + 2), s.substring(pos + 2,  strend));
+					token.str_open = '$';
+					token.str_close = '$';
+					return strend + 2;
+				}
+			} else {
+				/* it's not '$$', but maybe it's pgsql "$ quoted strings" */
+				xlen = strlenspn(s.substring(pos + 1), "abcdefghjiklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+				if (xlen == 0) {
+					/* hmm it's "$" _something_ .. just add $ and keep going*/
+					Token token = new Token(TYPE_BAREWORD, pos, 1, "$");
+					state.tokenvec[state.current] = token;
+					return pos + 1;
+				} else {
+		            /* we have $foobar????? */
+		            /* is it $foobar$ */
+					if (pos + xlen + 1 == slen || s.charAt(pos + xlen + 1) != '$') {
+						/* not $foobar$, or fell off edge */
+						Token token = new Token(TYPE_BAREWORD, pos, 1, "$");
+						state.tokenvec[state.current] = token;
+						return pos + 1;
+					}
+					
+					/* we have $foobar$... find it again */
+					strend = s.indexOf(s.substring(pos, pos+xlen+2), pos+xlen+2);
+				    
+					if (strend == -1 || strend < pos+xlen+2) {
+						/* fell off edge */
+						Token token = new Token(TYPE_STRING, pos+xlen+2, slen-pos-xlen-2, s.substring(pos+xlen+2));
+						token.str_open = '$';
+						token.str_close = CHAR_NULL;
+						state.tokenvec[state.current] = token;
+						return slen;
+					} else {
+						/* got one. we're looking in between $foobar$__________$foobar$ */
+						Token token = new Token(TYPE_STRING, pos+xlen+2, strend-pos-xlen-2, s.substring(pos+xlen+2, strend));
+						token.str_open = '$';
+						token.str_close = '$';
+						state.tokenvec[state.current] = token;
+						return strend + xlen + 2;
+					}				
+				}
+			} 
+		} else if (xlen == 1 && s.charAt(pos + 1) == '.') {
+			/* $. should be parsed as a word */
+			return parse_word(state);
+		} else {
+			Token token = new Token(TYPE_NUMBER, pos, 1 + xlen, s.substring(pos, pos + xlen + 1));
+			state.tokenvec[state.current] = token;
+			return pos + xlen + 1;
+		}
+	}
+		
+	int parse_number(State state) {
+		int xlen;
+		int start;
+		String digits = null;
+		String s = state.s;
+		int slen = state.slen;
+		int pos = state.pos;
+		boolean have_e = false;
+		boolean have_exp = false;
+		
+	    /* s.charAt(pos) == '0' has 1/10 chance of being true,
+	     * while pos+1< slen is almost always true
+	     */
+		if (s.charAt(pos) == '0' && pos + 1 < slen) {
+			if (s.charAt(pos + 1) == 'X' || s.charAt(pos + 1) == 'x') {
+				digits = "0123456789ABCDEFabcdef";
+			} else if (s.charAt(pos + 1) == 'B' || s.charAt(pos + 1) == 'b') {
+				digits = "01";
+			}
+			
+			if (digits != null) {
+				xlen = strlenspn(s.substring(pos + 2), digits);
+				if (xlen == 0) {
+					Token token = new Token(TYPE_BAREWORD, pos, 2, "0" + s.charAt(pos + 1));
+					state.tokenvec[state.current] = token;
+					return pos + 2;
+				} else {
+					Token token = new Token(TYPE_NUMBER, pos, 2 + xlen, s.substring(pos, pos + 1 + xlen + 1));
+					state.tokenvec[state.current] = token;
+					return pos + 1 + xlen + 1;
+				}
+			}
+		}
+		
+		start = pos;
+		while (pos < slen && Character.isDigit(s.charAt(pos))) {
+			pos += 1;
+		}
+		
+		// number sequence reached a '.'
+		if (pos < slen && s.charAt(pos) == '.') {
+			pos += 1;
+			// keep going since it might be decimal
+			while (pos < slen && Character.isDigit(s.charAt(pos))) {
+				pos += 1;
+			}
+			if (pos - start == 1) {
+				/* only one character '.' read so far */
+				state.tokenvec[state.current] = new Token(TYPE_DOT, start, 1, ".");
+				return pos;
+			}
+		}
+		
+		if (pos < slen) {
+			if (s.charAt(pos) == 'E' || s.charAt(pos) == 'e') {
+				have_e = true;
+				pos += 1;
+				if (pos < slen && (s.charAt(pos) == '+' || s.charAt(pos) == '-')) {
+					pos += 1;
+				}
+				while (pos < slen && Character.isDigit(s.charAt(pos))) {
+					have_exp = true;
+					pos += 1;
+				}
+			}
+		}
+		
+	    /* oracle's ending float or double suffix
+	     * http://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements003.htm#i139891
+	     */
+		if (pos < slen && (s.charAt(pos) == 'd' || s.charAt(pos) == 'D' || s.charAt(pos) == 'f' || s.charAt(pos) == 'F')) {
+			if (pos + 1 == slen) {
+				/* line ends evaluate "... 1.2f$" as '1.2f' */
+				pos += 1;
+			} else if ((char_is_white(s.charAt(pos + 1)) || s.charAt(pos + 1) == ';')) {
+	            /*
+	             * easy case, evaluate "... 1.2f ... as '1.2f'
+	             */
+				pos += 1;
+			} else if (s.charAt(pos + 1) == 'u' || s.charAt(pos + 1) == 'U') {
+	            /*
+	             * a bit of a hack but makes '1fUNION' parse as '1f UNION'
+	             */
+	            pos += 1;
+			} else {
+	            /* it's like "123FROM" */
+	            /* parse as "123" only */
+			}
+		}
+		
+		if (have_e && !have_exp) {
+	        /* very special form of
+	         * "1234.e"
+	         * "10.10E"
+	         * ".E"
+	         * this is a WORD not a number!! */
+			state.tokenvec[state.current] = new Token(TYPE_BAREWORD, start, pos - start, s.substring(start, pos));
+		} else {
+			state.tokenvec[state.current] = new Token(TYPE_NUMBER, start, pos - start, s.substring(start, pos));
+		}
+		return pos;
+	}
+		
+	
+	
+	/*
+	 * Helper Functions
+	 */
+	
 
 	/* Token methods */
 	boolean token_is_unary_op(Token token) {
@@ -1002,10 +1870,133 @@ public class Libinjection {
 		}
 	}
 
-	
 	boolean token_is_arithmetic_op(Token token) {
 		char ch = token.val.charAt(0);
-		return (token.type == TYPE_OPERATOR && token.len == 1 &&
-				(ch == '*' || ch == '/' || ch == '-' || ch == '+' || ch == '%'));
+		return (token.type == TYPE_OPERATOR && token.len == 1
+				&& (ch == '*' || ch == '/' || ch == '-' || ch == '+' || ch == '%'));
+	}
+
+	boolean char_is_white(char ch) {
+	    /* ' '  space is 0x20
+	       '\t  0x09 \011 horizontal tab
+	       '\n' 0x0a \012 new line
+	       '\v' 0x0b \013 vertical tab
+	       '\f' 0x0c \014 new page
+	       '\r' 0x0d \015 carriage return
+	            0x00 \000 null (oracle)
+	            0xa0 \240 is Latin-1
+	    */
+		
+		switch((int) ch) {
+		case 0x20 : return true;
+		case 0x09 : return true;
+		case 0x0a : return true;
+		case 0x0b : return true;
+		case 0x0c : return true;
+		case 0x0d : return true;
+		case 0x00 : return true;
+		case 0xa0 : return true;
+		default: return false;
+		}
+	}
+
+	/** This detects MySQL comments, comments that
+	 * start with /x!   We just ban these now but
+	 * previously we attempted to parse the inside
+	 *
+	 * For reference:
+	 * the form of /x![anything]x/ or /x!12345[anything] x/
+	 *
+	 * Mysql 3 (maybe 4), allowed this:
+	 *    /x!0selectx/ 1;
+	 * where 0 could be any number.
+	 *
+	 * The last version of MySQL 3 was in 2003.
+	 * It is unclear if the MySQL 3 syntax was allowed
+	 * in MySQL 4.  The last version of MySQL 4 was in 2008
+	 *
+	 */
+	boolean is_mysql_comment(String s, int len, int pos) {
+		/* so far...
+		 * s.charAt(pos) == '/' && s.charAt(pos+1) == '*'
+		 */
+		
+		if (pos + 2 >= len) {
+			/* not a mysql comment */
+			return false;
+		}
+		
+		if (s.charAt(pos + 2) != '!') {
+			/* not a mysql comment */
+			return false;
+		}
+		
+	    /*
+	     * this is a mysql comment
+	     *  got "/x!"
+	     */
+		return true;
+	}
+
+
+	/*
+	 *       "  \"   "  one backslash = escaped!
+	 *       " \\"   "  two backslash = not escaped!
+	 *       "\\\"   "  three backslash = escaped!
+	 */
+	boolean is_backslash_escaped(int end, int start, String s) {
+		int i = end;
+		
+		while ( i >= start ) {
+			if (s.charAt(i) != '\\') {
+				break;
+			}
+			i--;
+		}
+		
+		return ((end - i) & 1) == 1;
+	}
+
+    boolean is_double_delim_escaped(int cur, int end, String s) {
+    	return ((cur + 1) < end) && (s.charAt(cur + 1) == s.charAt(cur));
+    }
+
+//    public static int strlenspn(String s, Pattern pattern) {
+//    	Matcher matcher = pattern.matcher(s);
+//    	
+//    	int count = 0;
+//    	while (matcher.find()) {
+//    		System.out.println("Found value: " + matcher.group(1));
+//    		count++;
+//    	}
+//    	return count;
+//    }
+    
+	char flag2delim(int flag) {
+		if ((flag & FLAG_QUOTE_SINGLE) != 0) {
+			return CHAR_SINGLE;
+		} else if ((flag & FLAG_QUOTE_DOUBLE) != 0) {
+			return CHAR_DOUBLE;
+		} else {
+			return CHAR_NULL;
+		}
+	}
+
+	int strlenspn(String s, String accept) {
+		for (int i = 0; i < s.length(); i++) {
+			if (accept.indexOf(s.charAt(i)) == -1) {
+				return i;
+			}
+		}
+		return s.length();
+	}
+
+	int strlencspn(String s, String unaccepted) {
+		for (int i = 0; i < s.length(); i++) {
+			if (unaccepted.indexOf(s.charAt(i)) != -1) {
+				return i;
+			}
+		}
+		return s.length();
 	}
 }
