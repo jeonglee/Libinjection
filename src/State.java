@@ -29,7 +29,7 @@ public class State {
     	this.s = s;
     	this.slen = len;
         this.flags = flags;
-        this.current = 0;    
+        this.current = 0;
 //    	sf->lookup = libinjection_sqli_lookup_word;
 //      sf->userdata = 0;
     }

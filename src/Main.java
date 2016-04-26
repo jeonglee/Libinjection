@@ -1,6 +1,4 @@
-import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Arrays;
 
 public class Main {
 
@@ -8,11 +6,16 @@ public class Main {
 		String input = "admin";
 		State state = new State(input, input.length(), 0);
 		Keyword map = new Keyword("bin/Keywords.txt");
-		Libinjection test = new Libinjection();
+		Libinjection libinjection = new Libinjection();
 
+		//System.out.println(map.keywordMap.get("0N&1"));
 
-		boolean issqli = test.libinjection_sqli("admin' OR 1=1--");
-		System.out.println(issqli);
+		
+		Test test = new Test("src/sqli-all.txt.decoded");
+		//libinjection.libinjection_sqli("# embedded   mysql");
+		
+//		boolean issqli = test.libinjection_sqli("admin' OR 1=1--");
+//		System.out.println(issqli);
 		
 //		String s = "blah";
 //		System.out.println(s.substring(2,4));
