@@ -219,8 +219,8 @@ public class Libinjection {
 		}
 
 		while (true) {
-//			System.out.println("pos:" + pos + " left:" + left);
-//			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
+			System.out.println("pos:" + pos + " left:" + left);
+			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
 			/*
 			 * do we have all the max number of tokens? if so do some special
 			 * cases for 5 tokens
@@ -279,8 +279,8 @@ public class Libinjection {
 			 * added the 5th (and last) token In this case go through loop
 			 * again, go through special cases, exit or keep going.
 			 */
-//			System.out.println("pos:" + pos + " left:" + left);
-//			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
+			System.out.println("pos:" + pos + " left:" + left);
+			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
 			if (pos - left < 2) {
 				left = pos;
 				continue;
@@ -493,8 +493,8 @@ public class Libinjection {
 			 * all cases of handling 2 tokens is done and nothing matched. Get
 			 * one more token
 			 */
-//			System.out.println("pos:" + pos + " left:" + left);
-//			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
+			System.out.println("pos:" + pos + " left:" + left);
+			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
 			while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && (pos - left) < 3) {
 				state.current = pos;
 				more = libinjection_sqli_tokenize();

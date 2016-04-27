@@ -11,8 +11,8 @@ public class Main {
 		//System.out.println(map.keywordMap.get("0N&1"));
 
 		
-		Test test = new Test("src/sqli-all.txt.decoded");
-		//libinjection.libinjection_sqli("# embedded   mysql");
+		//Test test = new Test("src/sqli-all.txt.decoded");
+		libinjection.libinjection_sqli("1+UnIoN/**/SeLecT/**/1,2,3--");
 		
 //		boolean issqli = test.libinjection_sqli("admin' OR 1=1--");
 //		System.out.println(issqli);
