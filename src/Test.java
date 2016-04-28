@@ -7,31 +7,35 @@ import java.util.Scanner;
 
 
 public class Test {
-	public Test(String filename) {
+	public void testfile(String inputfile, String outputfile) {
 		Scanner in = null;
 		PrintWriter out = null;
-		int count = 0;
+		
 		try {
-			in = new Scanner(new FileReader(filename));
-			out =  new PrintWriter("src/sqli-all.java.results", "UTF-8");
-			String line;
+			in = new Scanner(new FileReader(inputfile));
+			out =  new PrintWriter(outputfile, "UTF-8");
 			Libinjection libinjection = new Libinjection();
+			
 			while (in.hasNextLine()) {
-				line = in.nextLine();
-				// urldecode
+				String line = in.nextLine();
+				
+				/* 
+				 * urldecode
+				 */
 				try {
 					line = URLDecoder.decode(line, "UTF-8");
 				} catch (UnsupportedEncodingException ex) {
 					ex.printStackTrace();
 				}
 				
+				/*
+				 *  test and add result to outputfile
+				 */
 				libinjection.libinjection_sqli(line);
-				//System.out.println(++count);
-				out.println(libinjection.output);
+				out.println(libinjection.getOutput());
 			}
-			in.close();
 		} catch (FileNotFoundException | UnsupportedEncodingException ex) {
-			System.out.println("file not found");
+			System.out.println("file not found or unsupported encoding");
 		} finally {
 			if (in != null) {
 				try {

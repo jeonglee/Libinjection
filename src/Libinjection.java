@@ -3,83 +3,107 @@ public class Libinjection {
 
 	public static final int LIBINJECTION_SQLI_MAX_TOKENS = 5;
 
-	public static final int FLAG_QUOTE_NONE = 1 /* 1 << 0 */
-			, FLAG_QUOTE_SINGLE = 2 /* 1 << 1 */
-			, FLAG_QUOTE_DOUBLE = 4 /* 1 << 2 */
-			, FLAG_SQL_ANSI = 8 /* 1 << 3 */
-			, FLAG_SQL_MYSQL = 16; /* 1 << 4 */
+	public static final int FLAG_QUOTE_NONE = 1;    /* 1 << 0 */
+	public static final int FLAG_QUOTE_SINGLE = 2;  /* 1 << 1 */
+	public static final int FLAG_QUOTE_DOUBLE = 4;  /* 1 << 2 */
+	public static final int FLAG_SQL_ANSI = 8;      /* 1 << 3 */
+	public static final int FLAG_SQL_MYSQL = 16;    /* 1 << 4 */
 
-	public static final int LOOKUP_WORD = 1, LOOKUP_TYPE = 2, LOOKUP_OPERATOR = 3, LOOKUP_FINGERPRINT = 4;
+	public static final int TYPE_NONE = 0; 
+	public static final int TYPE_KEYWORD     = (int) 'k';
+	public static final int TYPE_UNION       = (int) 'U'; 
+	public static final int TYPE_GROUP       = (int) 'B';
+	public static final int TYPE_EXPRESSION  = (int) 'E';
+	public static final int TYPE_SQLTYPE     = (int) 't'; 
+	public static final int TYPE_FUNCTION    = (int) 'f'; 
+	public static final int TYPE_BAREWORD    = (int) 'n';
+	public static final int	TYPE_NUMBER      = (int) '1';
+	public static final int TYPE_VARIABLE    = (int) 'v';
+	public static final int TYPE_STRING      = (int) 's';
+	public static final int TYPE_OPERATOR    = (int) 'o';
+	public static final int TYPE_LOGIC_OPERATOR = (int) '&';
+	public static final int TYPE_COMMENT     = (int) 'c';
+	public static final int TYPE_COLLATE     = (int) 'A';
+	public static final int TYPE_LEFTPARENS  = (int) '(';
+	public static final int TYPE_RIGHTPARENS = (int) ')';
+	public static final int TYPE_LEFTBRACE   = (int) '{';
+	public static final int TYPE_RIGHTBRACE  = (int) '}';
+	public static final int TYPE_DOT         = (int) '.';
+	public static final int TYPE_COMMA       = (int) ',';
+	public static final int TYPE_COLON       = (int) ':';
+	public static final int TYPE_SEMICOLON   = (int) ';';
+	public static final int TYPE_TSQL        = (int) 'T';
+	public static final int TYPE_UNKNOWN     = (int) '?';
+	public static final int TYPE_EVIL        = (int) 'X';
+	public static final int TYPE_FINGERPRINT = (int) 'F';
+	public static final int TYPE_BACKSLASH   = (int) '\\';
 
-	public static final char CHAR_NULL = '\0', CHAR_SINGLE = '\'', CHAR_DOUBLE = '"', CHAR_TICK = '`';
+	public static final char CHAR_NULL = '\0'; 
+	public static final char CHAR_SINGLE = '\''; 
+	public static final char CHAR_DOUBLE = '"'; 
+	public static final char CHAR_TICK = '`';
 
-	public static final int TYPE_NONE = 0, TYPE_KEYWORD = (int) 'k', TYPE_UNION = (int) 'U', TYPE_GROUP = (int) 'B',
-			TYPE_EXPRESSION = (int) 'E', TYPE_SQLTYPE = (int) 't', TYPE_FUNCTION = (int) 'f', TYPE_BAREWORD = (int) 'n',
-			TYPE_NUMBER = (int) '1', TYPE_VARIABLE = (int) 'v', TYPE_STRING = (int) 's', TYPE_OPERATOR = (int) 'o',
-			TYPE_LOGIC_OPERATOR = (int) '&', TYPE_COMMENT = (int) 'c', TYPE_COLLATE = (int) 'A',
-			TYPE_LEFTPARENS = (int) '(', TYPE_RIGHTPARENS = (int) ')', TYPE_LEFTBRACE = (int) '{',
-			TYPE_RIGHTBRACE = (int) '}', TYPE_DOT = (int) '.', TYPE_COMMA = (int) ',', TYPE_COLON = (int) ':',
-			TYPE_SEMICOLON = (int) ';', TYPE_TSQL = (int) 'T', TYPE_UNKNOWN = (int) '?', TYPE_EVIL = (int) 'X',
-			TYPE_FINGERPRINT = (int) 'F', TYPE_BACKSLASH = (int) '\\';
-
-	public static final int TRUE = 1, FALSE = 0;
-
-	Keyword keywords = new Keyword("bin/Keywords.txt");
-	State state;
-	String output;
-
-	/* Main API */
-	boolean libinjection_sqli(String input) {
+	private Keyword keywords = new Keyword("bin/Keywords.txt");  /* keyword hashmap */
+	private State state;
+	private String output;
+	
+	public State getState() {
+		return state;
+	}
+	public String getOutput() {
+		return output;
+	}
+	
+	/** 
+	 * Main API 
+	 */
+	public boolean libinjection_sqli(String input) {
 		this.state = new State(input, input.length(), 0);
-		int issqli = libinjection_is_sqli();
+		boolean issqli = libinjection_is_sqli();
+		
 		output = issqli + " : " + state.fingerprint;
 		System.out.println(output);
-		return issqli == TRUE;
+		return issqli;
 	}
 
-	int libinjection_is_sqli() {
+	public boolean libinjection_is_sqli() {
 		String s = state.s;
 		int slen = state.slen;
 		boolean sqlifingerprint;
 
-		// if no input, not SQLi
 		if (slen == 0) {
 			state.fingerprint = "";
-			return FALSE;
+			return false;
 		}
 
-		// test input "as-is". Does tokenizing and folding to get a fingerprint
-		// of input.
+		/* test input as-is */
 		libinjection_sqli_fingerprint(FLAG_QUOTE_NONE | FLAG_SQL_ANSI);
 		sqlifingerprint = libinjection_sqli_check_fingerprint();
 		if (sqlifingerprint) {
-			return TRUE;
+			return true;
 		} else if (reparse_as_mysql()) {
 			libinjection_sqli_fingerprint(FLAG_QUOTE_NONE | FLAG_SQL_MYSQL);
 			sqlifingerprint = libinjection_sqli_check_fingerprint();
 			if (sqlifingerprint) {
-				return TRUE;
+				return true;
 			}
 		}
 
 
-		/*
-		 * if input has a single_quote, then test as if input was actually '
-		 * example: if input if "1' = 1", then pretend it's "'1' = 1" Porting
-		 * Notes: example the same as doing is_string_sqli(sql_state, "'" + s,
-		 * slen+1, NULL, fn, arg)
-		 *
+		/* 
+		 * if input contains single quote, pretend it starts with single quote
+		 * example: admin' OR 1=1--  is tested as  'admin' OR 1=1--
 		 */
 		if (s.contains("'")) {
 			libinjection_sqli_fingerprint(FLAG_QUOTE_SINGLE | FLAG_SQL_ANSI);
 			sqlifingerprint = libinjection_sqli_check_fingerprint();
 			if (sqlifingerprint) {
-				return TRUE;
+				return true;
 			} else if (reparse_as_mysql()) {
 				libinjection_sqli_fingerprint(FLAG_QUOTE_SINGLE | FLAG_SQL_MYSQL);
 				sqlifingerprint = libinjection_sqli_check_fingerprint();
 				if (sqlifingerprint) {
-					return TRUE;
+					return true;
 				}
 			}
 		}
@@ -91,27 +115,34 @@ public class Libinjection {
 			libinjection_sqli_fingerprint(FLAG_QUOTE_DOUBLE | FLAG_SQL_MYSQL);
 			sqlifingerprint = libinjection_sqli_check_fingerprint();
 			if (sqlifingerprint) {
-				return TRUE;
+				return true;
 			}
 		}
-		// Not SQLi!
-		return FALSE;
+		
+		/* Not SQLi! */
+		return false;
 	}
 
-	boolean reparse_as_mysql() {
+	public boolean reparse_as_mysql() {
 		return (state.stats_comment_ddx + state.stats_comment_hash) > 0;
 	}
 
-	/* Secondary API: Detect SQLi GIVEN a context. */
-	String libinjection_sqli_fingerprint(int flags) {
-		int i;
+	/**
+	 *  Secondary API: Detect SQLi GIVEN a context. 
+	 */
+	public String libinjection_sqli_fingerprint(int flags) {
 		int fplen = 0;
 		StringBuilder fp = new StringBuilder();
 
-		// reset state
+		/* 
+		 * reset state: needed since we may test single input multiples times:
+		 * - as is
+		 * - single quote mode
+		 * - double quote mode
+		 */
 		state = new State(state.s, state.slen, flags);
-
-		// tokenize and fold
+		
+		/* get fingerprint */
 		fplen = libinjection_sqli_fold();
 
 		/*
@@ -120,17 +151,18 @@ public class Libinjection {
 		 * it's empty? Then convert it to comment
 		 */
 		if (fplen > 2 && state.tokenvec[fplen - 1].type == TYPE_BAREWORD
-				&& state.tokenvec[fplen - 1].str_open == CHAR_TICK && state.tokenvec[fplen - 1].len == 0
-				&& state.tokenvec[fplen - 1].str_close == CHAR_NULL) {
+			&& state.tokenvec[fplen - 1].str_open == CHAR_TICK 
+			&& state.tokenvec[fplen - 1].len == 0
+			&& state.tokenvec[fplen - 1].str_close == CHAR_NULL) {			
 			state.tokenvec[fplen - 1].type = TYPE_COMMENT;
 		}
 
-		// copy tokenvec to fingerprint
-		for (i = 0; i < fplen; i++) {
+		/* copy fingerprint to String */
+		for (int i = 0; i < fplen; i++) {
 			fp.append(state.tokenvec[i].type);
-		}
-		
+		}	
 		state.fingerprint = fp.toString();
+		
 		/*
 		 * check for 'X' in pattern, and then clear out all tokens
 		 *
@@ -140,20 +172,19 @@ public class Libinjection {
 		 */
 		if (state.fingerprint.indexOf(TYPE_EVIL) != -1) {
 			state.fingerprint = "X";
-
 			Token token = new Token(TYPE_EVIL, 0, 0, String.valueOf(TYPE_EVIL));
 			Token[] replace = { token, null, null, null, null, null, null, null };
 			state.tokenvec = replace;
 		}
+		
 		return state.fingerprint;
-
 	}
 
-	Character libinjection_sqli_lookup_word(String str) {
+	public Character libinjection_sqli_lookup_word(String str) {
 		return keywords.keywordMap.get(str.toUpperCase());
 	}
 
-	boolean is_keyword(String str) {
+	public boolean is_keyword(String str) {
 		Character value = keywords.keywordMap.get(str.toUpperCase());
 
 		if (value == null || value != TYPE_FINGERPRINT) {
@@ -162,83 +193,71 @@ public class Libinjection {
 		return true;
 	}
 
-	boolean libinjection_sqli_check_fingerprint() {
+	public boolean libinjection_sqli_check_fingerprint() {
 		return libinjection_sqli_blacklist();
 	}
 
-	boolean libinjection_sqli_blacklist() {
+	public boolean libinjection_sqli_blacklist() {
 		int len = state.fingerprint.length();
 		
-		if (len < 1) {
-			return false;
-		}
-		
-
-		// maybe just use fp2.toUpperCase()?
-//		int ascii;
-//		for (int i = 0; i < len; i++) {
-//			ascii = (int) state.fingerprint.charAt(i);
-//			if (ascii > 0x60 && ascii < 0x7B) {
-//				ascii -= 0x20;
-//			}
-//			fp2 = fp2 + String.valueOf(state.fingerprint);
-//		}
-		
-		if (is_keyword(state.fingerprint)) {
+		if (len > 0 && is_keyword(state.fingerprint)) {
 			return true;
 		}
 		return false;	
 	}
 
-	// Returns the number of tokens in final fingerprint.
-	int libinjection_sqli_fold() {
-		int pos = 0; // position where NEXT token goes
-		int left = 0; // count of how many tokens that are already folded or
-						// processed (i.e. part of the fingerprint)
+	public int libinjection_sqli_fold() {
+		int pos = 0;  /* position where NEXT token goes */
+		int left = 0; /* # of tokens so far that will be part of the final fingerprint */
+		boolean more = true; /* more characters in input to check? */
 		int current = state.current;
-		boolean more = true;
-		/*
-		 * A comment token to add additional information. Initialized to prevent
-		 * errors
-		 */
-		Token last_comment = new Token(CHAR_NULL, 0, 0, null);
+		Token last_comment = new Token(CHAR_NULL, 0, 0, null); /* A comment token to add additional info */
 
+		/* skip stuff we don't need to look at */
 		while (more) {
 			more = libinjection_sqli_tokenize();
-			if (!(state.tokenvec[current].type == TYPE_COMMENT || state.tokenvec[current].type == TYPE_LEFTPARENS
-					|| state.tokenvec[current].type == TYPE_SQLTYPE || token_is_unary_op(state.tokenvec[current]))) {
+			if (!(state.tokenvec[current].type == TYPE_COMMENT 
+				|| state.tokenvec[current].type == TYPE_LEFTPARENS
+				|| state.tokenvec[current].type == TYPE_SQLTYPE 
+				|| token_is_unary_op(state.tokenvec[current]))) {
 				break;
 			}
 		}
 
-		if (!more) {
-			return 0;
-		} else {
-			pos += 1;
+		if (!more) { 
+			return 0; 
+		} else { 
+			pos += 1; 
 		}
 
+		/* the actual tokenizing and folding */
 		while (true) {
-//			System.out.println("pos=" + pos + "  left=" + left + " curtype=" + state.tokenvec[state.current].type + " value=" + state.tokenvec[state.current].val);
-//			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
 			/*
 			 * do we have all the max number of tokens? if so do some special
 			 * cases for 5 tokens
 			 */
 			if (pos >= LIBINJECTION_SQLI_MAX_TOKENS) {
 				if ((state.tokenvec[0].type == TYPE_NUMBER
-						&& (state.tokenvec[1].type == TYPE_OPERATOR || state.tokenvec[1].type == TYPE_COMMA)
-						&& state.tokenvec[2].type == TYPE_LEFTPARENS && state.tokenvec[3].type == TYPE_NUMBER
-						&& state.tokenvec[4].type == TYPE_RIGHTPARENS)
-						|| (state.tokenvec[0].type == TYPE_BAREWORD && state.tokenvec[1].type == TYPE_OPERATOR
-								&& state.tokenvec[2].type == TYPE_LEFTPARENS
-								&& (state.tokenvec[3].type == TYPE_BAREWORD || state.tokenvec[3].type == TYPE_NUMBER)
-								&& state.tokenvec[4].type == TYPE_RIGHTPARENS)
-						|| (state.tokenvec[0].type == TYPE_NUMBER && state.tokenvec[1].type == TYPE_RIGHTPARENS
-								&& state.tokenvec[2].type == TYPE_COMMA && state.tokenvec[3].type == TYPE_LEFTPARENS
-								&& state.tokenvec[4].type == TYPE_NUMBER)
-						|| (state.tokenvec[0].type == TYPE_BAREWORD && state.tokenvec[1].type == TYPE_RIGHTPARENS
-								&& state.tokenvec[2].type == TYPE_OPERATOR && state.tokenvec[3].type == TYPE_LEFTPARENS
-								&& state.tokenvec[4].type == TYPE_BAREWORD)) {
+					    && (state.tokenvec[1].type == TYPE_OPERATOR || state.tokenvec[1].type == TYPE_COMMA)
+				   	    && state.tokenvec[2].type == TYPE_LEFTPARENS 
+				        && state.tokenvec[3].type == TYPE_NUMBER
+					    && state.tokenvec[4].type == TYPE_RIGHTPARENS)
+					|| (state.tokenvec[0].type == TYPE_BAREWORD 
+				        && state.tokenvec[1].type == TYPE_OPERATOR
+					    && state.tokenvec[2].type == TYPE_LEFTPARENS
+					    && (state.tokenvec[3].type == TYPE_BAREWORD || state.tokenvec[3].type == TYPE_NUMBER)
+					    && state.tokenvec[4].type == TYPE_RIGHTPARENS)
+					|| (state.tokenvec[0].type == TYPE_NUMBER 
+					    && state.tokenvec[1].type == TYPE_RIGHTPARENS
+					    && state.tokenvec[2].type == TYPE_COMMA 
+					    && state.tokenvec[3].type == TYPE_LEFTPARENS
+						&& state.tokenvec[4].type == TYPE_NUMBER)
+					|| (state.tokenvec[0].type == TYPE_BAREWORD 
+					    && state.tokenvec[1].type == TYPE_RIGHTPARENS
+						&& state.tokenvec[2].type == TYPE_OPERATOR 
+						&& state.tokenvec[3].type == TYPE_LEFTPARENS
+						&& state.tokenvec[4].type == TYPE_BAREWORD)) 
+				{	
 					if (pos > LIBINJECTION_SQLI_MAX_TOKENS) {
 						state.tokenvec[1] = state.tokenvec[LIBINJECTION_SQLI_MAX_TOKENS];
 						pos = 2;
@@ -248,20 +267,19 @@ public class Libinjection {
 						left = 0;
 					}
 				}
-
 			}
 
-			// if processed all characters in input or the number of tokens in
-			// fingerprint exceeds 5, stop.
+			/* if checked all of input or # of tokens in fingerprint exceeds 5, stop. */
 			if (!more || left >= LIBINJECTION_SQLI_MAX_TOKENS) {
 				left = pos;
 				break;
 			}
 
-			// get up to two tokens
+			/* get up to two tokens */
 			while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && (pos - left) < 2) {
-				state.current = pos;
+				state.current = pos; 
 				current = state.current;
+				
 				more = libinjection_sqli_tokenize();
 				if (more) {
 					if (state.tokenvec[current].type == TYPE_COMMENT) {
@@ -275,12 +293,11 @@ public class Libinjection {
 
 			/*
 			 * if we didn't get at least two tokens, it means we exited above
-			 * while loop because we: 1.) processed all of the input OR 2.)
-			 * added the 5th (and last) token In this case go through loop
-			 * again, go through special cases, exit or keep going.
+			 * while loop because we: 
+			 * 1.) processed all of the input OR 
+			 * 2.) added the 5th (and last) token 
+			 * In this case start over
 			 */
-//			System.out.println("pos=" + pos + "  left=" + left + " curtype=" + state.tokenvec[state.current].type);
-//			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
 			if (pos - left < 2) {
 				left = pos;
 				continue;
@@ -289,28 +306,31 @@ public class Libinjection {
 			/*
 			 * two token folding
 			 */
-			if (state.tokenvec[left].type == TYPE_STRING && state.tokenvec[left + 1].type == TYPE_STRING) {
+			if (state.tokenvec[left].type == TYPE_STRING 
+				&& state.tokenvec[left + 1].type == TYPE_STRING) {
 				pos -= 1;
 				state.stats_folds += 1;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_SEMICOLON && state.tokenvec[left + 1].type == TYPE_SEMICOLON) {
-				// fold away repeated semicolons. i.e. ;; to ;
+			} else if (state.tokenvec[left].type == TYPE_SEMICOLON 
+				&& state.tokenvec[left + 1].type == TYPE_SEMICOLON) {
+				/* fold away repeated semicolons. i.e. ;; to ; */
 				pos -= 1;
 				state.stats_folds += 1;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_SEMICOLON && state.tokenvec[left + 1].type == TYPE_FUNCTION
-					&& state.tokenvec[left + 1].val.toUpperCase().equals("IF")) {
+			} else if (state.tokenvec[left].type == TYPE_SEMICOLON 
+				&& state.tokenvec[left + 1].type == TYPE_FUNCTION
+				&& state.tokenvec[left + 1].val.toUpperCase().equals("IF")) {
 				state.tokenvec[left + 1].type = TYPE_TSQL;
 				left += 2;
-				continue; // reparse everything. but we probably can advance
-							// left, and pos */
+				continue; /*reparse everything. but we probably can advance left, and pos */
 			} else if ((state.tokenvec[left].type == TYPE_OPERATOR || state.tokenvec[left].type == TYPE_LOGIC_OPERATOR)
-					&& (token_is_unary_op(state.tokenvec[left + 1]) || state.tokenvec[left + 1].type == TYPE_SQLTYPE)) {
+				&& (token_is_unary_op(state.tokenvec[left + 1]) || state.tokenvec[left + 1].type == TYPE_SQLTYPE)) {
 				pos -= 1;
 				state.stats_folds += 1;
 				left = 0;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_LEFTPARENS && token_is_unary_op(state.tokenvec[left + 1])) {
+			} else if (state.tokenvec[left].type == TYPE_LEFTPARENS 
+				&& token_is_unary_op(state.tokenvec[left + 1])) {
 				pos -= 1;
 				state.stats_folds += 1;
 				if (left > 0) {
@@ -325,14 +345,13 @@ public class Libinjection {
 				}
 				continue;
 			}
-			/*
-			 * ----------------------------------------------two token handling.
-			 * take a deeper
-			 * look-------------------------------------------------------------
-			 * -
+			
+			/* 
+			 * two token handling. 
 			 */
 			else if ((state.tokenvec[left].type == TYPE_BAREWORD || state.tokenvec[left].type == TYPE_VARIABLE)
-					&& state.tokenvec[left + 1].type == TYPE_LEFTPARENS && (
+					&& state.tokenvec[left + 1].type == TYPE_LEFTPARENS 
+					&& (
 					/* TSQL functions but common enough to be column names */
 					state.tokenvec[left].val.toUpperCase().equals("USER_ID") || state.tokenvec[left].val.toUpperCase().equals("USER_NAME") ||
 
@@ -357,7 +376,6 @@ public class Libinjection {
 							|| state.tokenvec[left].val.toUpperCase().equals("CURRENT_TIMESTAMP")
 							|| state.tokenvec[left].val.toUpperCase().equals("LOCALTIME")
 							|| state.tokenvec[left].val.toUpperCase().equals("LOCALTIMESTAMP"))) {
-
 				/*
 				 * pos is the same other conversions need to go here... for
 				 * instance password CAN be a function, coalesce CAN be a
@@ -365,18 +383,15 @@ public class Libinjection {
 				 */
 				state.tokenvec[left].type = TYPE_FUNCTION;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_KEYWORD && (state.tokenvec[left].val.toUpperCase().equals("IN")
-					|| state.tokenvec[left].val.toUpperCase().equals("NOT IN"))) {
+			} else if (state.tokenvec[left].type == TYPE_KEYWORD 
+				&& (state.tokenvec[left].val.toUpperCase().equals("IN")
+				|| state.tokenvec[left].val.toUpperCase().equals("NOT IN"))) {
 
 				if (state.tokenvec[left + 1].type == TYPE_LEFTPARENS) {
-					/*
-					 * got .... IN ( ... (or 'NOT IN') it's an operator
-					 */
+					/* got .... IN ( ... (or 'NOT IN') it's an operator */
 					state.tokenvec[left].type = TYPE_OPERATOR;
 				} else {
-					/*
-					 * it's a nothing
-					 */
+					/* it's a nothing */
 					state.tokenvec[left].type = TYPE_BAREWORD;
 				}
 
@@ -391,31 +406,30 @@ public class Libinjection {
 				 */
 				continue;
 			} else if ((state.tokenvec[left].type == TYPE_OPERATOR)
-					&& (state.tokenvec[left].val.toUpperCase().equals("LIKE")
-							|| state.tokenvec[left].val.toUpperCase().equals("NOT LIKE"))) {
+				&& (state.tokenvec[left].val.toUpperCase().equals("LIKE")
+				|| state.tokenvec[left].val.toUpperCase().equals("NOT LIKE"))) {
 				if (state.tokenvec[left + 1].type == TYPE_LEFTPARENS) {
-					/*
-					 * SELECT LIKE(... it's a function
-					 */
+					/* SELECT LIKE(... it's a function */
 					state.tokenvec[left].type = TYPE_FUNCTION;
 				}
 			} else if (state.tokenvec[left].type == TYPE_SQLTYPE && (state.tokenvec[left + 1].type == TYPE_BAREWORD
-					|| state.tokenvec[left + 1].type == TYPE_NUMBER || state.tokenvec[left + 1].type == TYPE_SQLTYPE
-					|| state.tokenvec[left + 1].type == TYPE_LEFTPARENS
-					|| state.tokenvec[left + 1].type == TYPE_FUNCTION || state.tokenvec[left + 1].type == TYPE_VARIABLE
-					|| state.tokenvec[left + 1].type == TYPE_STRING)) {
-				// st_copy(&state.tokenvec[left], &state.tokenvec[left+1]);
+				|| state.tokenvec[left + 1].type == TYPE_NUMBER 
+				|| state.tokenvec[left + 1].type == TYPE_SQLTYPE
+				|| state.tokenvec[left + 1].type == TYPE_LEFTPARENS
+				|| state.tokenvec[left + 1].type == TYPE_FUNCTION 
+				|| state.tokenvec[left + 1].type == TYPE_VARIABLE
+				|| state.tokenvec[left + 1].type == TYPE_STRING)) {
 				state.tokenvec[left] = state.tokenvec[left + 1];
 				pos -= 1;
 				state.stats_folds += 1;
 				left = 0;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_COLLATE && state.tokenvec[left + 1].type == TYPE_BAREWORD) {
+			} else if (state.tokenvec[left].type == TYPE_COLLATE 
+				&& state.tokenvec[left + 1].type == TYPE_BAREWORD) {
 				/*
 				 * there are too many collation types.. so if the bareword has a
 				 * "_" then it's TYPE_SQLTYPE
 				 */
-				// if (strchr(state.tokenvec[left+1].val, '_') != NULL) {
 				if (state.tokenvec[left + 1].val.indexOf('_') != -1) {
 					state.tokenvec[left + 1].type = TYPE_SQLTYPE;
 					left = 0;
@@ -426,7 +440,6 @@ public class Libinjection {
 					state.tokenvec[left].type = TYPE_NUMBER;
 				} else {
 					/* just ignore it.. Again T-SQL seems to parse \1 as "1" */
-					// st_copy(&state.tokenvec[left], &state.tokenvec[left+1]);
 					state.tokenvec[left] = state.tokenvec[left + 1];
 					pos -= 1;
 					state.stats_folds += 1;
@@ -434,18 +447,19 @@ public class Libinjection {
 				left = 0;
 				continue;
 			} else if (state.tokenvec[left].type == TYPE_LEFTPARENS
-					&& state.tokenvec[left + 1].type == TYPE_LEFTPARENS) {
+				&& state.tokenvec[left + 1].type == TYPE_LEFTPARENS) {
 				pos -= 1;
 				left = 0;
 				state.stats_folds += 1;
 				continue;
 			} else if (state.tokenvec[left].type == TYPE_RIGHTPARENS
-					&& state.tokenvec[left + 1].type == TYPE_RIGHTPARENS) {
+				&& state.tokenvec[left + 1].type == TYPE_RIGHTPARENS) {
 				pos -= 1;
 				left = 0;
 				state.stats_folds += 1;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_LEFTBRACE && state.tokenvec[left + 1].type == TYPE_BAREWORD) {
+			} else if (state.tokenvec[left].type == TYPE_LEFTBRACE 
+				&& state.tokenvec[left + 1].type == TYPE_BAREWORD) {
 
 				/*
 				 * MySQL Degenerate case --
@@ -484,20 +498,16 @@ public class Libinjection {
 				state.stats_folds += 1;
 				continue;
 			}
-			/*
-			 * -----------------------------------------------------------------
-			 * ---------------------
-			 */
+
 
 			/*
 			 * all cases of handling 2 tokens is done and nothing matched. Get
 			 * one more token
 			 */
-//			System.out.println("pos=" + pos + "  left=" + left + " curtype=" + state.tokenvec[state.current].type);
-//			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
 			while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && (pos - left) < 3) {
 				state.current = pos; 
 				current = state.current;
+				
 				more = libinjection_sqli_tokenize();
 				if (more) {
 					if (state.tokenvec[current].type == TYPE_COMMENT) {
@@ -508,126 +518,138 @@ public class Libinjection {
 					}
 				}
 			}
+			
 			/*
 			 * if we didn't get at least three tokens, it means we exited above
-			 * while loop because we: 1.) processed all of the input OR 2.)
-			 * added the 5th (and last) token In this case go through loop
-			 * again, go through special cases, exit or keep going.
+			 * while loop because we: 
+			 * 1.) processed all of the input OR 
+			 * 2.) added the 5th (and last) token 
+			 * In this case start over.
 			 */
 			if (pos - left < 3) {
 				left = pos;
 				continue;
 			}
 
-			/*
-			 * ------------------------------------------------Three token
-			 * folding. Take a deeper look
-			 * -------------------------------------------
+			/* 
+			 * Three token folding 
 			 */
 
-			if (state.tokenvec[left].type == TYPE_NUMBER && state.tokenvec[left + 1].type == TYPE_OPERATOR
-					&& state.tokenvec[left + 2].type == TYPE_NUMBER) {
+			if (state.tokenvec[left].type == TYPE_NUMBER 
+				&& state.tokenvec[left + 1].type == TYPE_OPERATOR
+				&& state.tokenvec[left + 2].type == TYPE_NUMBER) {
 				pos -= 2;
 				left = 0;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_OPERATOR && state.tokenvec[left + 1].type != TYPE_LEFTPARENS
-					&& state.tokenvec[left + 2].type == TYPE_OPERATOR) {
+			} else if (state.tokenvec[left].type == TYPE_OPERATOR 
+				&& state.tokenvec[left + 1].type != TYPE_LEFTPARENS
+				&& state.tokenvec[left + 2].type == TYPE_OPERATOR) {
 				left = 0;
 				pos -= 2;
 				continue;
 			} else if (state.tokenvec[left].type == TYPE_LOGIC_OPERATOR
-					&& state.tokenvec[left + 2].type == TYPE_LOGIC_OPERATOR) {
+				&& state.tokenvec[left + 2].type == TYPE_LOGIC_OPERATOR) {
 				pos -= 2;
 				left = 0;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_VARIABLE && state.tokenvec[left + 1].type == TYPE_OPERATOR
-					&& (state.tokenvec[left + 2].type == TYPE_VARIABLE || state.tokenvec[left + 2].type == TYPE_NUMBER
-							|| state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
+			} else if (state.tokenvec[left].type == TYPE_VARIABLE 
+				&& state.tokenvec[left + 1].type == TYPE_OPERATOR
+				&& (state.tokenvec[left + 2].type == TYPE_VARIABLE 
+				 || state.tokenvec[left + 2].type == TYPE_NUMBER
+		         || state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
 				pos -= 2;
 				left = 0;
 				continue;
 			} else if ((state.tokenvec[left].type == TYPE_BAREWORD || state.tokenvec[left].type == TYPE_NUMBER)
-					&& state.tokenvec[left + 1].type == TYPE_OPERATOR && (state.tokenvec[left + 2].type == TYPE_NUMBER
-							|| state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
+				&& state.tokenvec[left + 1].type == TYPE_OPERATOR 
+				&& (state.tokenvec[left + 2].type == TYPE_NUMBER || state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
 				pos -= 2;
 				left = 0;
 				continue;
-			} else if ((state.tokenvec[left].type == TYPE_BAREWORD || state.tokenvec[left].type == TYPE_NUMBER
-					|| state.tokenvec[left].type == TYPE_VARIABLE || state.tokenvec[left].type == TYPE_STRING)
-					&& state.tokenvec[left + 1].type == TYPE_OPERATOR &&
-					// streq(state.tokenvec[left+1].val, "::") &&
-					state.tokenvec[left + 1].val.equals("::") && state.tokenvec[left + 2].type == TYPE_SQLTYPE) {
+			} else if ((state.tokenvec[left].type == TYPE_BAREWORD 
+				     || state.tokenvec[left].type == TYPE_NUMBER
+				     || state.tokenvec[left].type == TYPE_VARIABLE
+				     || state.tokenvec[left].type == TYPE_STRING)
+				&& state.tokenvec[left + 1].type == TYPE_OPERATOR 
+				&& state.tokenvec[left + 1].val.equals("::") 
+				&& state.tokenvec[left + 2].type == TYPE_SQLTYPE) {
 				pos -= 2;
 				left = 0;
 				state.stats_folds += 2;
 				continue;
-			} else if ((state.tokenvec[left].type == TYPE_BAREWORD || state.tokenvec[left].type == TYPE_NUMBER
-					|| state.tokenvec[left].type == TYPE_STRING || state.tokenvec[left].type == TYPE_VARIABLE)
-					&& state.tokenvec[left + 1].type == TYPE_COMMA
-					&& (state.tokenvec[left + 2].type == TYPE_NUMBER || state.tokenvec[left + 2].type == TYPE_BAREWORD
-							|| state.tokenvec[left + 2].type == TYPE_STRING
-							|| state.tokenvec[left + 2].type == TYPE_VARIABLE)) {
+			} else if ((state.tokenvec[left].type == TYPE_BAREWORD 
+					 || state.tokenvec[left].type == TYPE_NUMBER
+					 || state.tokenvec[left].type == TYPE_STRING 
+					 || state.tokenvec[left].type == TYPE_VARIABLE)
+				&& state.tokenvec[left + 1].type == TYPE_COMMA
+				&& (state.tokenvec[left + 2].type == TYPE_NUMBER 
+				 || state.tokenvec[left + 2].type == TYPE_BAREWORD
+			     || state.tokenvec[left + 2].type == TYPE_STRING
+				 || state.tokenvec[left + 2].type == TYPE_VARIABLE)) {
 				pos -= 2;
 				left = 0;
 				continue;
-			} else if ((state.tokenvec[left].type == TYPE_EXPRESSION || state.tokenvec[left].type == TYPE_GROUP
-					|| state.tokenvec[left].type == TYPE_COMMA) && token_is_unary_op(state.tokenvec[left + 1])
-					&& state.tokenvec[left + 2].type == TYPE_LEFTPARENS) {
+			} else if ((state.tokenvec[left].type == TYPE_EXPRESSION 
+					 || state.tokenvec[left].type == TYPE_GROUP
+					 || state.tokenvec[left].type == TYPE_COMMA) 
+				&& token_is_unary_op(state.tokenvec[left + 1])
+				&& state.tokenvec[left + 2].type == TYPE_LEFTPARENS) {
 				/*
 				 * got something like SELECT + (, LIMIT + ( remove unary
 				 * operator
 				 */
-				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
 				state.tokenvec[left + 1] = state.tokenvec[left + 2];
 				pos -= 1;
 				left = 0;
 				continue;
-			} else if ((state.tokenvec[left].type == TYPE_KEYWORD || state.tokenvec[left].type == TYPE_EXPRESSION
-					|| state.tokenvec[left].type == TYPE_GROUP)
-					&& token_is_unary_op(state.tokenvec[left + 1])
-					&& (state.tokenvec[left + 2].type == TYPE_NUMBER || state.tokenvec[left + 2].type == TYPE_BAREWORD
-							|| state.tokenvec[left + 2].type == TYPE_VARIABLE
-							|| state.tokenvec[left + 2].type == TYPE_STRING
-							|| state.tokenvec[left + 2].type == TYPE_FUNCTION)) {
+			} else if ((state.tokenvec[left].type == TYPE_KEYWORD 
+					 || state.tokenvec[left].type == TYPE_EXPRESSION
+					 || state.tokenvec[left].type == TYPE_GROUP)
+				&& token_is_unary_op(state.tokenvec[left + 1])
+				&& (state.tokenvec[left + 2].type == TYPE_NUMBER 
+				 || state.tokenvec[left + 2].type == TYPE_BAREWORD
+				 || state.tokenvec[left + 2].type == TYPE_VARIABLE
+				 || state.tokenvec[left + 2].type == TYPE_STRING
+		   		 || state.tokenvec[left + 2].type == TYPE_FUNCTION)) {
 				/*
 				 * remove unary operators select - 1
 				 */
-				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
 				state.tokenvec[left + 1] = state.tokenvec[left + 2];
 				pos -= 1;
 				left = 0;
 				continue;
 			} else if (state.tokenvec[left].type == TYPE_COMMA && token_is_unary_op(state.tokenvec[left + 1])
-					&& (state.tokenvec[left + 2].type == TYPE_NUMBER || state.tokenvec[left + 2].type == TYPE_BAREWORD
-							|| state.tokenvec[left + 2].type == TYPE_VARIABLE
-							|| state.tokenvec[left + 2].type == TYPE_STRING)) {
+				&& (state.tokenvec[left + 2].type == TYPE_NUMBER 
+				 || state.tokenvec[left + 2].type == TYPE_BAREWORD
+				 || state.tokenvec[left + 2].type == TYPE_VARIABLE
+				 || state.tokenvec[left + 2].type == TYPE_STRING)) {
 				/*
 				 * interesting case turn ", -1" ->> ",1" PLUS we need to back up
 				 * one token if possible to see if more folding can be done
 				 * "1,-1" --> "1"
 				 */
-				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
 				state.tokenvec[left + 1] = state.tokenvec[left + 2];
 				left = 0;
 				/* pos is >= 3 so this is safe */
 				assert (pos >= 3);
 				pos -= 3;
 				continue;
-			} else if (state.tokenvec[left].type == TYPE_COMMA && token_is_unary_op(state.tokenvec[left + 1])
-					&& state.tokenvec[left + 2].type == TYPE_FUNCTION) {
+			} else if (state.tokenvec[left].type == TYPE_COMMA 
+				&& token_is_unary_op(state.tokenvec[left + 1])
+				&& state.tokenvec[left + 2].type == TYPE_FUNCTION) {
 
 				/*
 				 * Separate case from above since you end up with 1,-sin(1) -->
 				 * 1 (1) Here, just do 1,-sin(1) --> 1,sin(1) just remove unary
 				 * operator
 				 */
-				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
 				state.tokenvec[left + 1] = state.tokenvec[left + 2];
 				pos -= 1;
 				left = 0;
 				continue;
-			} else if ((state.tokenvec[left].type == TYPE_BAREWORD) && (state.tokenvec[left + 1].type == TYPE_DOT)
-					&& (state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
+			} else if ((state.tokenvec[left].type == TYPE_BAREWORD) 
+				&& (state.tokenvec[left + 1].type == TYPE_DOT)
+				&& (state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
 				/*
 				 * ignore the '.n' typically is this databasename.table
 				 */
@@ -635,17 +657,19 @@ public class Libinjection {
 				pos -= 2;
 				left = 0;
 				continue;
-			} else if ((state.tokenvec[left].type == TYPE_EXPRESSION) && (state.tokenvec[left + 1].type == TYPE_DOT)
-					&& (state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
-				/* select . `foo` --> select `foo` */
-				// st_copy(&state.tokenvec[left+1], &state.tokenvec[left+2]);
+			} else if ((state.tokenvec[left].type == TYPE_EXPRESSION) 
+				&& (state.tokenvec[left + 1].type == TYPE_DOT)
+				&& (state.tokenvec[left + 2].type == TYPE_BAREWORD)) {
+				/* 
+				 * select . `foo` --> select `foo` 
+				 */
 				state.tokenvec[left + 1] = state.tokenvec[left + 2];
 				pos -= 1;
 				left = 0;
 				continue;
 			} else if ((state.tokenvec[left].type == TYPE_FUNCTION)
-					&& (state.tokenvec[left + 1].type == TYPE_LEFTPARENS)
-					&& (state.tokenvec[left + 2].type != TYPE_RIGHTPARENS)) {
+				&& (state.tokenvec[left + 1].type == TYPE_LEFTPARENS)
+				&& (state.tokenvec[left + 2].type != TYPE_RIGHTPARENS)) {
 				/*
 				 * whats going on here Some SQL functions like USER() have 0
 				 * args if we get User(foo), then User is not a function This
@@ -658,13 +682,7 @@ public class Libinjection {
 			}
 
 			/*
-			 * -----------------------------------------------------------------
-			 * -----------------------------------------------------------------
-			 * ----------------------
-			 */
-
-			/*
-			 * assume left-most token is good, now use the existing 2 tokens --
+			 * assume left-most token is good, now use the existing 2 tokens, 
 			 * do not get another
 			 */
 			left += 1;
@@ -691,10 +709,10 @@ public class Libinjection {
 		return left;
 	}
 
-	// Tokenize, return whether there are more characters to tokenize
-
-	boolean libinjection_sqli_tokenize() {
-		/* UNFINISHED */
+	/* 
+	 * Tokenize, return whether there are more characters to tokenize 
+	 */
+	public boolean libinjection_sqli_tokenize() {
 		int pos = state.pos;
 		int slen = state.slen;
 		int current = state.current;
@@ -704,7 +722,7 @@ public class Libinjection {
 			return false;
 		}
 
-		// clear token in current position
+		/* clear token in current position (also to initialize) */
 		state.tokenvec[current] = new Token(TYPE_NONE, 0, 0, "");
 
 		/*
@@ -716,12 +734,9 @@ public class Libinjection {
 			state.stats_tokens += 1;
 			return true;
 		}
-		
 
 		while (pos < slen) {
-			char ch = s.charAt(pos); // current character
-//			System.out.println("Character to be processed: " + ch);
-			// parse and tokenize character
+			char ch = s.charAt(pos); /* current character */
 			switch (ch) {
 			case 0:
 				pos = parse_white();
@@ -1492,8 +1507,10 @@ public class Libinjection {
 				pos = parse_word();
 				break; /* 255 */
 			default:
-				pos = pos + 1;
-//				System.out.println("DANGER!!! UNKOWN CHARACTER!!!");
+				/* 
+				 * move on if not in standard ascii set 
+				 */
+				pos = pos + 1; 
 				break;
 			}
 			state.pos = pos;
@@ -1505,71 +1522,16 @@ public class Libinjection {
 		return false;
 	}
 
-	/* Parsers */
 	/**
-	 * See if two tokens can be merged since they are compound SQL phrases.
-	 *
-	 * This takes two tokens, and, if they are the right type, merges their
-	 * values together. Then checks to see if the new value is special using the
-	 * PHRASES mapping.
-	 *
-	 * Example: "UNION" + "ALL" ==> "UNION ALL"
-	 *
-	 * C Security Notes: this is safe to use C-strings (null-terminated) since
-	 * the types involved by definition do not have embedded nulls (e.g. there
-	 * is no keyword with embedded null)
-	 *
-	 * Porting Notes: since this is C, it's oddly complicated. This is just:
-	 * multikeywords[token.value + ' ' + token2.value]
-	 *
+	 * Parsers:
+	 * Looks at current character in input String, 
+	 * makes sense of it and turns it into a token.
 	 */
-	boolean syntax_merge_words(Token a, int apos, Token b, int bpos) {
-		String merged;
-		Character wordtype;
-
-		// first token must not represent any of these types
-		if (!(a.type == TYPE_KEYWORD || a.type == TYPE_BAREWORD || a.type == TYPE_OPERATOR || a.type == TYPE_UNION
-				|| a.type == TYPE_FUNCTION || a.type == TYPE_EXPRESSION || a.type == TYPE_SQLTYPE)) {
-			return false;
-		}
-
-		// second token must not represent any of these types
-		if (b.type != TYPE_KEYWORD && b.type != TYPE_BAREWORD && b.type != TYPE_OPERATOR && b.type != TYPE_SQLTYPE
-				&& b.type != TYPE_LOGIC_OPERATOR && b.type != TYPE_FUNCTION && b.type != TYPE_UNION
-				&& b.type != TYPE_EXPRESSION) {
-			return false;
-		}
-
-		merged = a.val + " " + b.val;
-		wordtype = libinjection_sqli_lookup_word(merged);
-
-		if (wordtype != null) {
-			Token token = new Token(wordtype, a.pos, merged.length(), merged);
-			state.tokenvec[apos] = token;
-			// shift down all tokens after b by one index
-			for (int i = bpos; i < state.tokenvec.length - 1; i++) {
-				if (state.tokenvec[i] != null) {
-					state.tokenvec[i] = state.tokenvec[i + 1];
-				} else {
-					break;
-				}
-			}
-			state.tokenvec[7] = null;
-			return true;
-		} else {
-			return false;
-		}
-
-	}
-
-	/*
-	 * Parse Functions
-	 */
-	int parse_white() {
+	public int parse_white() {
 		return state.pos + 1;
 	}
 
-	int parse_operator1() {
+	public int parse_operator1() {
 		String s = state.s;
 		int pos = state.pos;
 		Token token = new Token(TYPE_OPERATOR, pos, 1, String.valueOf(s.charAt(pos)));
@@ -1577,7 +1539,7 @@ public class Libinjection {
 		return pos + 1;
 	}
 
-	int parse_other() {
+	public int parse_other() {
 		String s = state.s;
 		int pos = state.pos;
 		Token token = new Token(TYPE_UNKNOWN, pos, 1, String.valueOf(s.charAt(pos)));
@@ -1585,7 +1547,7 @@ public class Libinjection {
 		return pos + 1;
 	}
 
-	int parse_char() {
+	public int parse_char() {
 		String s = state.s;
 		int pos = state.pos;
 		Token token = new Token(s.charAt(pos), pos, 1, String.valueOf(s.charAt(pos)));
@@ -1593,31 +1555,33 @@ public class Libinjection {
 		return pos + 1;
 	}
 
-	int parse_eol_comment() {
+	public int parse_eol_comment() {
 		String s = state.s;
 		int slen = state.slen;
 		int pos = state.pos;
 
-		// first occurrence of '\n' starting from pos
+		/* first occurrence of '\n' starting from pos */
 		int endpos = s.indexOf('\n', pos);
 		if (endpos == -1) {
 			Token token = new Token(TYPE_COMMENT, pos, slen - pos, s.substring(pos));
 			state.tokenvec[state.current] = token;
 			return slen;
 		} else {
-			// tokenize from pos to endpos - 1. for example if "abc--\n" then
-			// tokenize "--"
+			/* 
+			 * tokenize from pos to endpos - 1. 
+			 * example: if "abc--\n" then tokenize "--"
+			 */
 			Token token = new Token(TYPE_COMMENT, pos, endpos - pos, s.substring(pos, endpos));
 			state.tokenvec[state.current] = token;
 			return endpos + 1;
 		}
 	}
 
-	/**
-	 * In ANSI mode, hash is an operator In MYSQL mode, it's a EOL comment like
-	 * '--'
+	/*
+	 * In ANSI mode, hash is an operator 
+	 * In MYSQL mode, it's a EOL comment like '--'
 	 */
-	int parse_hash() {
+	public int parse_hash() {
 		state.stats_comment_hash += 1;
 		if ((state.flags & FLAG_SQL_MYSQL) != 0) {
 			state.stats_comment_hash += 1;
@@ -1629,17 +1593,18 @@ public class Libinjection {
 		}
 	}
 
-	int parse_dash() {
+	public int parse_dash() {
 		String s = state.s;
 		int slen = state.slen;
 		int pos = state.pos;
 		/*
-		 * five cases 1) --[white] this is always a SQL comment 2) --[EOF] this
-		 * is a comment 3) --[notwhite] in MySQL this is NOT a comment but two
-		 * unary operators 4) --[notwhite] everyone else thinks this is a
-		 * comment 5) -[not dash] '-' is a unary operator
+		 * five cases: 
+		 * 1) --[white] this is always a SQL comment 
+		 * 2) --[EOF] this is a comment 
+		 * 3) --[notwhite] in MySQL this is NOT a comment but two unary operators 
+		 * 4) --[notwhite] everyone else thinks this is a comment 
+		 * 5) -[not dash] '-' is a unary operator
 		 */
-
 		if (pos + 2 < slen && s.charAt(pos + 1) == '-' && char_is_white(s.charAt(pos + 2))) {
 			return parse_eol_comment();
 		} else if (pos + 2 == slen && s.charAt(pos + 1) == '-') {
@@ -1654,21 +1619,20 @@ public class Libinjection {
 		}
 	}
 
-	int parse_slash() {
+	public int parse_slash() {
 		String s = state.s;
 		int slen = state.slen;
 		int pos = state.pos;
 
-		// not a comment
+		/* not a comment */
 		if (pos + 1 == slen || s.charAt(pos + 1) != '*') {
 			return parse_operator1();
 		}
 
-		// is a comment
+		/* is a comment */
 		int clen;
 		int ctype = TYPE_COMMENT;
-		// index of * in */ (we do pos + 2 to skip over /x)
-		int cend = s.indexOf("*/", pos + 2); 
+		int cend = s.indexOf("*/", pos + 2);  // index of * in */ (we do pos + 2 to skip over /*) 
 		boolean closed = cend != -1;
 		
 		if (!closed) {
@@ -1697,7 +1661,7 @@ public class Libinjection {
 		return pos + clen;
 	}
 
-	int parse_backslash() {
+	public int parse_backslash() {
 		String s = state.s;
 		int slen = state.slen;
 		int pos = state.pos;
@@ -1716,19 +1680,21 @@ public class Libinjection {
 		}
 	}
 
-	int parse_operator2() {
+	public int parse_operator2() {
 		Character ch;
 		String s = state.s;
 		int slen = state.slen;
 		int pos = state.pos;
 
-		// single operator at end of line
+		/* single operator at end of line */
 		if (pos + 1 >= slen) {
 			return parse_operator1();
 		}
 
-		// "<=>"
-		if (pos + 2 < slen && s.charAt(pos) == '<' && s.charAt(pos + 1) == '=' && s.charAt(pos + 2) == '>') {
+		/* "<=>" */
+		if (pos + 2 < slen && s.charAt(pos) == '<' 
+			&& s.charAt(pos + 1) == '=' 
+			&& s.charAt(pos + 2) == '>') {
 			/*
 			 * special 3-char operator
 			 */
@@ -1737,7 +1703,7 @@ public class Libinjection {
 			return pos + 3;
 		}
 
-		// 2-char operators: "-=", "+=", "!!", ":=", etc...
+		/* 2-char operators: "-=", "+=", "!!", ":=", etc... */
 		String operator = s.substring(pos, pos + 2);
 		ch = libinjection_sqli_lookup_word(operator);
 		if (ch != null) {
@@ -1746,18 +1712,13 @@ public class Libinjection {
 		}
 
 		if (s.charAt(pos) == ':') {
-			// ':' alone is not an operator
+			/* ':' alone is not an operator */
 			state.tokenvec[state.current] = new Token(TYPE_COLON, pos, 1, ":");
 			return pos + 1;
 		} else {
-		// must be a 1-char operator
+		/* must be a 1-char operator */
 		return parse_operator1();
 		}
-	}
-
-	int parse_colon() {
-		state.tokenvec[state.current] = new Token(TYPE_COLON, state.pos, 1, ":");
-		return state.pos + 1;
 	}
 
 	/*
@@ -1765,22 +1726,21 @@ public class Libinjection {
 	 *
 	 * case 'foo''bar' --> foo''bar
 	 *
-	 * ending quote isn't duplicated (i.e. escaped) since it's the wrong char or
-	 * EOL
+	 * ending quote isn't duplicated (i.e. escaped) 
+	 * since it's the wrong char or EOL
 	 *
 	 */
-	int parse_string_core(char delim, int offset) {
+	public int parse_string_core(char delim, int offset) {
 		String s = state.s;
 		int slen = state.slen;
 		int pos = state.pos;
-		int qpos = s.indexOf(delim, pos + offset); // offset used to skip first
-													// quote
-		// real quote if offset > 0, simulated quote if not.
+		int qpos = s.indexOf(delim, pos + offset); /* offset to skip first quote */
+		/* real quote if offset > 0, simulated quote if not */
 		char str_open = (offset > 0) ? delim : CHAR_NULL;
 
 		while (true) {
 			if (qpos == -1) {
-				// string ended with no trailing quote. add token
+				/* string ended with no trailing quote. add token */
 				Token token = new Token(TYPE_STRING, pos + offset, slen - pos - offset, s.substring(pos + offset));
 				token.str_open = str_open;
 				token.str_close = CHAR_NULL;
@@ -1793,7 +1753,7 @@ public class Libinjection {
 				qpos = s.indexOf(delim, qpos + 2);
 				continue;
 			} else {
-				// quote is closed: it's a normal string.
+				/* quote is closed: it's a normal string */
 				Token token = new Token(TYPE_STRING, pos + offset, qpos - (pos + offset),
 						s.substring(pos + offset, qpos));
 				token.str_open = str_open;
@@ -1804,16 +1764,15 @@ public class Libinjection {
 		}
 	}
 
-	// Used when first char is ' or "
-	int parse_string() {
+	/* Used when first char is ' or " */
+	public int parse_string() {
 		return parse_string_core(state.s.charAt(state.pos), 1);
 	}
 
-	/**
-	 * Used when first char is: N or n: mysql "National Character set" E : psql
-	 * "Escaped String"
+	/*
+	 * Used when first char is E : psql "Escaped String"
 	 */
-	int parse_estring() {
+	public int parse_estring() {
 		String s = state.s;
 		int slen = state.slen;
 		int pos = state.pos;
@@ -1824,7 +1783,10 @@ public class Libinjection {
 		return parse_string_core(CHAR_SINGLE, 2);
 	}
 
-	int parse_ustring() {
+	/*
+	 * Used when first char is N or n: mysql "National Character set"
+	 */
+	public int parse_ustring() {
 		String s = state.s;
 		int slen = state.slen;
 		int pos = state.pos;
@@ -1843,7 +1805,7 @@ public class Libinjection {
 
 	}
 
-	int parse_qstring_core(int offset) {
+	public int parse_qstring_core(int offset) {
 		char ch;
 		String s = state.s;
 		int slen = state.slen;
@@ -1854,11 +1816,12 @@ public class Libinjection {
 		 * we don't have 2 more chars if char2 != a single quote then, just
 		 * treat as word
 		 */
-		if (pos >= slen || (s.charAt(pos) != 'q' && s.charAt(pos) != 'Q') || pos + 2 >= slen
-				|| s.charAt(pos + 1) != '\'') {
+		if (pos >= slen 
+			|| (s.charAt(pos) != 'q' && s.charAt(pos) != 'Q') 
+			|| pos + 2 >= slen
+			|| s.charAt(pos + 1) != '\'') {
 			return parse_word();
 		}
-
 		ch = s.charAt(pos + 2);
 
 		/*
@@ -1882,10 +1845,9 @@ public class Libinjection {
 			break;
 		}
 
-		String find = String.valueOf(ch) + String.valueOf('\''); // find )\' or
-																	// ]\' or
-																	// }\' or
-																	// >\'
+		/* find )' or ]' or }' or >' */
+		String find = String.valueOf(ch) + String.valueOf('\''); 
+		
 		int found = s.indexOf(find, pos + 3);
 		if (found == -1) {
 			Token token = new Token(TYPE_STRING, pos + 3, slen - pos - 3, s.substring(pos + 3));
@@ -1898,7 +1860,7 @@ public class Libinjection {
 			token.str_open = 'q';
 			token.str_close = 'q';
 			state.tokenvec[state.current] = token;
-			return found + 2; // +2 to skip over )\' or ]'\ or }\' or >\'
+			return found + 2; /* +2 to skip over )' or ]' or }' or >' */
 		}
 
 	}
@@ -1906,14 +1868,14 @@ public class Libinjection {
 	/*
 	 * Oracle's q string
 	 */
-	int parse_qstring() {
+	public int parse_qstring() {
 		return parse_qstring_core(0);
 	}
 
 	/*
 	 * mysql's N'STRING' or ... Oracle's nq string
 	 */
-	int parse_nqstring() {
+	public int parse_nqstring() {
 		String s = state.s;
 		int slen = state.slen;
 		int pos = state.pos;
@@ -1926,7 +1888,7 @@ public class Libinjection {
 	/*
 	 * binary literal string re: [bB]'[01]*'
 	 */
-	int parse_bstring() {
+	public int parse_bstring() {
 		int wlen;
 		String s = state.s;
 		int pos = state.pos;
@@ -1939,14 +1901,17 @@ public class Libinjection {
 		if (pos + 2 >= slen || s.charAt(pos + 1) != '\'') {
 			return parse_word();
 		}
-
 		wlen = strlenspn(s.substring(pos + 2), "01");
-		// if [01]* pattern not found, or the pattern did not close with a
-		// single quote
+		
+		/* 
+		 * if [01]* pattern not found, or the pattern 
+		 * did not close with a single quote 
+		 */
 		if (pos + 2 + wlen >= slen || s.charAt(pos + 2 + wlen) != '\'') {
 			return parse_word();
 		}
-		// +3 for [bB], starting quote, ending quote.
+		
+		/* +3 for [bB], starting quote, ending quote */
 		Token token = new Token(TYPE_NUMBER, pos, wlen + 3, s.substring(pos, pos + wlen + 3));
 		state.tokenvec[state.current] = token;
 		return pos + 2 + wlen + 1;
@@ -1956,7 +1921,7 @@ public class Libinjection {
 	 * hex literal string re: [xX]'[0123456789abcdefABCDEF]*' mysql has
 	 * requirement of having EVEN number of chars, but pgsql does not
 	 */
-	int parse_xstring() {
+	public int parse_xstring() {
 		int wlen;
 		String s = state.s;
 		int pos = state.pos;
@@ -1969,26 +1934,28 @@ public class Libinjection {
 		if (pos + 2 >= slen || s.charAt(pos + 1) != '\'') {
 			return parse_word();
 		}
-
 		wlen = strlenspn(s.substring(pos + 2), "0123456789abcdefABCDEF");
-		// if [0123456789abcdefABCDEF]* pattern not found, or the pattern did
-		// not close with a single quote
+	
+		/* 
+		 * if [0123456789abcdefABCDEF]* pattern not found, 
+		 * or the pattern did not close with a single quote
+		 */
 		if (pos + 2 + wlen >= slen || s.charAt(pos + 2 + wlen) != '\'') {
 			return parse_word();
 		}
-		// +3 for [xX], starting quote, ending quote.
+		
+		/* +3 for [xX], starting quote, ending quote */
 		Token token = new Token(TYPE_NUMBER, pos, wlen + 3, s.substring(pos, pos + wlen + 3));
 		state.tokenvec[state.current] = token;
 		return pos + 2 + wlen + 1;
 	}
 
-	/**
+	/*
 	 * This handles MS SQLSERVER bracket words
 	 * http://stackoverflow.com/questions/3551284/sql-serverwhat-do-brackets-
 	 * mean-around-column-name
-	 *
 	 */
-	int parse_bword() {
+	public int parse_bword() {
 		String s = state.s;
 		int pos = state.pos;
 		int slen = state.slen;
@@ -2004,7 +1971,7 @@ public class Libinjection {
 		}
 	}
 
-	int parse_word() {
+	public int parse_word() {
 		Character wordtype;
 		char delim;
 		String s = state.s;
@@ -2052,7 +2019,7 @@ public class Libinjection {
 		return pos + wlen;
 	}
 
-	int parse_tick() {
+	public int parse_tick() {
 		int pos = parse_string_core(CHAR_TICK, 1);
 
 		/*
@@ -2079,7 +2046,7 @@ public class Libinjection {
 		return pos;
 	}
 
-	int parse_var() {
+	public int parse_var() {
 		int xlen;
 		String s = state.s;
 		int slen = state.slen;
@@ -2117,7 +2084,7 @@ public class Libinjection {
 			}
 		}
 
-		xlen = strlencspn(s.substring(pos), " <>:\\?=@!#~+-*/&|^%(),';\t\n\u000b\f\r'`\""); // \u000b is vertical tab
+		xlen = strlencspn(s.substring(pos), " <>:\\?=@!#~+-*/&|^%(),';\t\n\u000b\f\r'`\"");
 		if (xlen == 0) {
 			Token token = new Token(TYPE_VARIABLE, pos, 0, "");
 			state.tokenvec[state.current] = token;
@@ -2129,7 +2096,7 @@ public class Libinjection {
 		}
 	}
 
-	int parse_money() {
+	public int parse_money() {
 		int xlen;
 		int strend;
 		String s = state.s;
@@ -2217,7 +2184,7 @@ public class Libinjection {
 		}
 	}
 
-	int parse_number() {
+	public int parse_number() {
 		int xlen;
 		int start;
 		String digits = null;
@@ -2257,10 +2224,10 @@ public class Libinjection {
 			pos += 1;
 		}
 
-		// number sequence reached a '.'
+		/* number sequence reached a '.' */
 		if (pos < slen && s.charAt(pos) == '.') {
 			pos += 1;
-			// keep going since it might be decimal
+			/* keep going since it might be decimal */
 			while (pos < slen && Character.isDigit(s.charAt(pos))) {
 				pos += 1;
 			}
@@ -2323,12 +2290,77 @@ public class Libinjection {
 		return pos;
 	}
 
-	/*
+	
+	/**
 	 * Helper Functions
 	 */
+	
+	/*
+	 * See if two tokens can be merged since they are compound SQL phrases.
+	 *
+	 * This takes two tokens, and, if they are the right type, merges their
+	 * values together. Then checks to see if the new value is special using the
+	 * PHRASES mapping.
+	 *
+	 * Example: "UNION" + "ALL" ==> "UNION ALL"
+	 *
+	 * C Security Notes: this is safe to use C-strings (null-terminated) since
+	 * the types involved by definition do not have embedded nulls (e.g. there
+	 * is no keyword with embedded null)
+	 *
+	 * Porting Notes: since this is C, it's oddly complicated. This is just:
+	 * multikeywords[token.value + ' ' + token2.value]
+	 *
+	 */
+	public boolean syntax_merge_words(Token a, int apos, Token b, int bpos) {
+		String merged;
+		Character wordtype;
 
-	/* Token methods */
-	boolean token_is_unary_op(Token token) {
+		/* first token must not represent any of these types */
+		if (!(a.type == TYPE_KEYWORD 
+			|| a.type == TYPE_BAREWORD 
+			|| a.type == TYPE_OPERATOR 
+			|| a.type == TYPE_UNION
+			|| a.type == TYPE_FUNCTION
+			|| a.type == TYPE_EXPRESSION
+			|| a.type == TYPE_SQLTYPE)) {
+			return false;
+		}
+
+		/* second token must not represent any of these types */
+		if (b.type != TYPE_KEYWORD && b.type != TYPE_BAREWORD 
+			&& b.type != TYPE_OPERATOR 
+			&& b.type != TYPE_SQLTYPE
+			&& b.type != TYPE_LOGIC_OPERATOR 
+			&& b.type != TYPE_FUNCTION 
+			&& b.type != TYPE_UNION
+			&& b.type != TYPE_EXPRESSION) {
+			return false;
+		}
+
+		merged = a.val + " " + b.val;
+		wordtype = libinjection_sqli_lookup_word(merged);
+
+		if (wordtype != null) {
+			Token token = new Token(wordtype, a.pos, merged.length(), merged);
+			state.tokenvec[apos] = token;
+			/* shift down all tokens after b by one index */
+			for (int i = bpos; i < state.tokenvec.length - 1; i++) {
+				if (state.tokenvec[i] != null) {
+					state.tokenvec[i] = state.tokenvec[i + 1];
+				} else {
+					break;
+				}
+			}
+			state.tokenvec[7] = null;
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	public boolean token_is_unary_op(Token token) {
 		String str = token.val;
 		int len = token.len;
 
@@ -2348,7 +2380,7 @@ public class Libinjection {
 		}
 	}
 
-	boolean token_is_arithmetic_op(Token token) {
+	public boolean token_is_arithmetic_op(Token token) {
 		if (token.len == 1 && token.type == TYPE_OPERATOR) {
 			char ch = token.val.charAt(0);
 			return (ch == '*' || ch == '/' || ch == '-' || ch == '+' || ch == '%');
@@ -2356,7 +2388,7 @@ public class Libinjection {
 		return false;
 	}
 
-	boolean char_is_white(char ch) {
+	public boolean char_is_white(char ch) {
 		/*
 		 * ' ' space is 0x20 '\t 0x09 \011 horizontal tab '\n' 0x0a \012 new
 		 * line '\v' 0x0b \013 vertical tab '\f' 0x0c \014 new page '\r' 0x0d
@@ -2385,7 +2417,7 @@ public class Libinjection {
 		}
 	}
 
-	/**
+	/*
 	 * This detects MySQL comments, comments that start with /x! We just ban
 	 * these now but previously we attempted to parse the inside
 	 *
@@ -2398,7 +2430,7 @@ public class Libinjection {
 	 * syntax was allowed in MySQL 4. The last version of MySQL 4 was in 2008
 	 *
 	 */
-	boolean is_mysql_comment(String s, int len, int pos) {
+	public boolean is_mysql_comment(String s, int len, int pos) {
 		/*
 		 * so far... s.charAt(pos) == '/' && s.charAt(pos+1) == '*'
 		 */
@@ -2423,7 +2455,7 @@ public class Libinjection {
 	 * "  \"   " one backslash = escaped! " \\"   " two backslash = not escaped!
 	 * "\\\"   " three backslash = escaped!
 	 */
-	boolean is_backslash_escaped(int end, int start, String s) {
+	public boolean is_backslash_escaped(int end, int start, String s) {
 		int i = end;
 
 		while (i >= start) {
@@ -2436,22 +2468,11 @@ public class Libinjection {
 		return ((end - i) & 1) == 1;
 	}
 
-	boolean is_double_delim_escaped(int cur, int end, String s) {
+	public boolean is_double_delim_escaped(int cur, int end, String s) {
 		return ((cur + 1) < end) && (s.charAt(cur + 1) == s.charAt(cur));
 	}
 
-	// public static int strlenspn(String s, Pattern pattern) {
-	// Matcher matcher = pattern.matcher(s);
-	//
-	// int count = 0;
-	// while (matcher.find()) {
-	// System.out.println("Found value: " + matcher.group(1));
-	// count++;
-	// }
-	// return count;
-	// }
-
-	char flag2delim(int flag) {
+	public char flag2delim(int flag) {
 		if ((flag & FLAG_QUOTE_SINGLE) != 0) {
 			return CHAR_SINGLE;
 		} else if ((flag & FLAG_QUOTE_DOUBLE) != 0) {
@@ -2461,7 +2482,7 @@ public class Libinjection {
 		}
 	}
 
-	int strlenspn(String s, String accept) {
+	public int strlenspn(String s, String accept) {
 		int len = s.length();
 		for (int i = 0; i < len; i++) {
 			if (accept.indexOf(s.charAt(i)) == -1) {
@@ -2471,7 +2492,7 @@ public class Libinjection {
 		return len;
 	}
 
-	int strlencspn(String s, String unaccepted) {
+	public int strlencspn(String s, String unaccepted) {
 		int len = s.length();
 		for (int i = 0; i < len; i++) {
 			if (unaccepted.indexOf(s.charAt(i)) != -1) {
