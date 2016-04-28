@@ -1,7 +1,8 @@
 import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
 import java.io.FileReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Scanner;
 
 
@@ -12,18 +13,18 @@ public class Test {
 		int count = 0;
 		try {
 			in = new Scanner(new FileReader(filename));
-			out =  new PrintWriter("src/sqli-all.txt.results1", "UTF-8");
+			out =  new PrintWriter("src/sqli-all.java.results", "UTF-8");
 			String line;
 			Libinjection libinjection = new Libinjection();
 			while (in.hasNextLine()) {
 				line = in.nextLine();
-				/* urldecode
+				// urldecode
 				try {
 					line = URLDecoder.decode(line, "UTF-8");
 				} catch (UnsupportedEncodingException ex) {
 					ex.printStackTrace();
 				}
-				*/
+				
 				libinjection.libinjection_sqli(line);
 				//System.out.println(++count);
 				out.println(libinjection.output);

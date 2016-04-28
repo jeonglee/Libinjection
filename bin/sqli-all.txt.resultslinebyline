@@ -183,21 +183,19 @@
 1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1k
-0 : 1UcEc
+1 : 1UE1c
 0 : 
 0 : 
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-1 : 1Uc
-0 : Ec
-0 : 1
+1 : 1UE1k
+1 : 1UE
+1 : 1UE
+1 : 1UE
+1 : 1UE1
 1 : 1UE1
 1 : 1&(E1
 1 : X
 1 : X
-0 : s;cTc
+1 : s;Tnn
 0 : 
 0 : 
 0 : 
@@ -461,6 +459,7 @@
 1 : 1UE1,
 1 : 1UEnk
 1 : 1&1UE
+1 : sUEf(
 1 : sUE1,
 1 : 1UE1k
 1 : 1UE1,
@@ -559,7 +558,7 @@
 1 : 1UEf(
 1 : 1UEf(
 1 : 1UEf(
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1&1UE
 1 : 1UE1,
@@ -639,7 +638,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UEf(
-0 : 1cUcE
+1 : 1UE1k
 1 : 1UE1,
 1 : sUE1,
 1 : 1UE1,
@@ -909,7 +908,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1(
@@ -1014,7 +1013,7 @@
 1 : 1UE1,
 1 : 1UE1k
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1(
 1 : 1UE1,
 1 : 1UE1,
@@ -1086,7 +1085,7 @@
 1 : s&1UE
 1 : 1&1UE
 1 : 1&1UE
-0 : 1c&c1
+1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1o(
@@ -1154,7 +1153,7 @@
 1 : sUE1,
 1 : sUE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -1221,7 +1220,7 @@
 1 : 1&1ov
 1 : 1UE1,
 1 : 1&(1)
-0 : 1UcE1
+1 : 1UE1c
 1 : 1UE1,
 1 : 1&1UE
 1 : sUE1,
@@ -1467,7 +1466,7 @@
 1 : 1&1UE
 1 : s&(1)
 1 : 1&f(f
-0 : 1&c1U
+1 : 1&1UE
 1 : 1)&(f
 1 : 1&f(f
 1 : 1&1Bf
@@ -2010,7 +2009,7 @@
 1 : 1UE1(
 1 : 1UE1,
 1 : 1UEf(
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -2071,7 +2070,7 @@
 1 : 1&1of
 1 : 1&1of
 1 : s&f(E
-0 : 1c&(1
+1 : 1&(1)
 1 : 1&f(f
 1 : 1&(Ef
 1 : 1UE1,
@@ -2796,7 +2795,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UEf(
-0 : 1cUcE
+1 : 1UEnk
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
@@ -2858,7 +2857,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : scUcE
+1 : sUE1,
 1 : 1UE1,
 1 : 1UE1(
 1 : 1UE1,
@@ -3377,17 +3376,11 @@
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
-0 : 1c&c1
-1 : 1&1UE
-1 : 1&1UE
-1 : 1&1UE
-1 : s&1UE
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
 1 : s&1UE
-1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
@@ -3398,6 +3391,12 @@
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
+1 : s&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
@@ -3417,11 +3416,11 @@
 1 : 1&1UE
 1 : s&1UE
 1 : 1&1UE
-0 : 1c&c1
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
-0 : 1c&c1
+1 : 1&1UE
+1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1U(
@@ -3464,7 +3463,7 @@
 1 : 1&f(v
 1 : 1&f(f
 1 : 1&f(v
-0 : 1c&c1
+1 : 1&1UE
 1 : 1B1UE
 1 : 1B1UE
 1 : 1B1UE
@@ -3671,7 +3670,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1c
-0 : 1cUcn
+1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1k
 1 : 1UE1,
@@ -3684,7 +3683,7 @@
 1 : 1UE1k
 1 : sUE1,
 1 : 1UE1,
-0 : 1cUcn
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -3692,7 +3691,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1n
-0 : 1cUcn
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -3704,7 +3703,7 @@
 1 : 1UE1,
 1 : 1UE1c
 1 : 1UE1k
-0 : 1cUcn
+1 : 1UE1k
 1 : 1UE1,
 1 : sUE1,
 1 : 1UEf(
@@ -3718,7 +3717,6 @@
 1 : 1UE1k
 1 : s)UE1
 1 : 1UE1,
-0 : 1cUcE
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -3727,7 +3725,8 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
+1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1k
@@ -3928,7 +3927,7 @@
 1 : 1UE1,
 1 : 1UE1k
 1 : 1UE1,
-1 : 1UE1c
+1 : 1UE1n
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -4316,7 +4315,7 @@
 1 : 1UE1,
 1 : 1UE1(
 1 : 1UE1k
-0 : scUcE
+1 : sUE1k
 1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1k
@@ -4781,7 +4780,7 @@
 1 : sUE1k
 1 : 1UE1k
 1 : 1UE1k
-0 : 1cUcE
+1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1k
@@ -4882,7 +4881,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : scUcE
+1 : sUE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : sUE1,
@@ -5099,7 +5098,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : sUE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -5370,7 +5369,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -5552,7 +5551,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -5847,7 +5846,7 @@
 1 : 1UE1(
 1 : 1UE1k
 1 : 1UE1k
-0 : 1cUcE
+1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1(
 1 : 1UE1(
@@ -5872,7 +5871,7 @@
 1 : 1UE1,
 1 : sUE1,
 1 : sUE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : sUE1,
@@ -5960,7 +5959,7 @@
 1 : 1UEf(
 1 : 1UEf(
 1 : sUEf(
-0 : 1cUcE
+1 : 1UEf(
 1 : 1UEf(
 1 : 1UEf(
 1 : 1UEf(
@@ -6281,7 +6280,7 @@
 1 : sUEf(
 1 : 1UEvc
 1 : 1UEf(
-0 : 1UcEf
+1 : 1UEf(
 1 : sUEvc
 1 : sUEf(
 1 : 1)UEf
@@ -6396,7 +6395,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UEf(
 1 : sUE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -6632,7 +6631,7 @@
 1 : 1UEn1
 1 : 1UEf(
 1 : sUEf(
-1 : 1&1Uc
+1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
@@ -6817,7 +6816,7 @@
 1 : 1UE1,
 1 : 1)UE1
 1 : 1UE1,
-0 : 1UcE1
+1 : 1UE1(
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -6876,7 +6875,7 @@
 1 : 1UE1(
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1,
@@ -6998,7 +6997,7 @@
 1 : 1UEf(
 1 : 1UEf(
 1 : sUEf(
-1 : 1c
+1 : 1UE1c
 1 : 1UE1,
 1 : 1UE1,
 1 : 1&1UE
@@ -7090,7 +7089,7 @@
 1 : 1&(E1
 1 : s&1Bf
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1c
 1 : 1UE1,
 1 : 1UE1,
@@ -7205,8 +7204,8 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
-0 : 1cUcE
+1 : 1UE1k
+1 : 1UEvk
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -7433,7 +7432,7 @@
 1 : sUE1,
 1 : 1UE1,
 1 : 1UE1k
-0 : 1UcEc
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : s&1UE
@@ -7746,7 +7745,7 @@
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
-0 : 1c&c1
+1 : X
 1 : 1&1UE
 1 : s&1UE
 1 : 1&1UE
@@ -7820,7 +7819,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : sUE1k
 1 : 1UE1c
 1 : 1UE1c
@@ -7927,14 +7926,14 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1k
-0 : 1cUcE
+1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1(
-1 : 1UE1c
+1 : 1UE1k
 1 : 1)UE1
 1 : 1UE1,
 1 : 1UE1,
@@ -7988,7 +7987,7 @@
 1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1k
-0 : 1UcEc
+1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1,
 1 : sUE1(
@@ -8078,7 +8077,7 @@
 1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1k
-0 : scUcE
+1 : sUE1k
 1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1k
@@ -8289,7 +8288,7 @@
 1 : s;Ef(
 1 : 1B1c
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UEnk
 1 : 1UE1,
 1 : 1&f(f
 1 : 1UE1k
@@ -8426,7 +8425,7 @@
 1 : 1&1UE
 1 : 1&1o(
 1 : s&(1)
-0 : 1UcE1
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -8474,7 +8473,7 @@
 1 : 1UE1,
 1 : sUE1o
 1 : 1UE1,
-0 : 1UcE1
+1 : 1UE1,
 1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1(
@@ -8587,7 +8586,7 @@
 1 : 1UE1(
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1&1UE
 1 : 1&1UE
@@ -8661,7 +8660,7 @@
 1 : 1UE1,
 1 : sUEf(
 1 : 1UE1,
-0 : scUcE
+1 : sUE1,
 1 : 1UE1,
 1 : 1&(f(
 1 : 1UE1,
@@ -9016,7 +9015,7 @@
 1 : 1UE1,
 1 : 1UEf(
 1 : 1UEf(
-1 : 1UE1c
+1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -9119,7 +9118,7 @@
 1 : 1&f(f
 1 : 1&f(f
 1 : s&(f(
-1 : s&1Uc
+1 : s&1UE
 1 : sUE1(
 1 : 1B1c
 1 : 1n)UE
@@ -9199,54 +9198,54 @@
 1 : 1UE1c
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
-1 : 1UE1,
-1 : 1UE1,
-1 : sUE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
-1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : sUE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : sUE1,
+1 : 1UE1,
+1 : 1UE1,
 1 : X
 1 : 1UE1,
 1 : 1UE1,
@@ -9328,7 +9327,7 @@
 1 : 1UE1,
 1 : 1UE1k
 1 : 1UE1
-0 : scUcE
+1 : sUE1k
 1 : 1UE1k
 1 : 1UE1k
 1 : 1UE1k
@@ -9649,7 +9648,7 @@
 1 : 1B1c
 1 : 1UE1k
 1 : 1UE1c
-0 : 1UcE1
+1 : 1UE1,
 1 : 1&1UE
 1 : 1UE1,
 1 : 1UE1,
@@ -9817,7 +9816,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : sUE1k
@@ -9883,7 +9882,7 @@
 1 : 1UE1(
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -10182,7 +10181,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : sUE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : sUE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -10383,7 +10382,7 @@
 1 : 1UEnk
 1 : 1UEf(
 1 : 1UEf(
-0 : 1UcE1
+1 : 1UE1,
 1 : 1UEf(
 1 : sUE1,
 1 : 1UE1k
@@ -10543,7 +10542,7 @@
 1 : 1UEf(
 1 : 1UE1,
 1 : 1B1UE
-0 : 1cUcE
+1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1(
 1 : 1UE1k
@@ -10714,7 +10713,7 @@
 1 : sUE1,
 1 : 1UEf(
 1 : 1UE1,
-0 : 1c&c1
+1 : X
 1 : s&1UE
 1 : 1&1UE
 1 : s&1UE
@@ -10740,7 +10739,7 @@
 1 : 1UE1,
 1 : 1UE1(
 1 : 1UE1c
-0 : 1cUcE
+1 : 1UEf(
 1 : 1UEf(
 1 : sUEf(
 1 : 1UEf(
@@ -11215,7 +11214,7 @@
 1 : 1UE1,
 1 : 1UE1k
 1 : 1UE1,
-0 : 1UccE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -11541,7 +11540,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1&1UE
-0 : 1c&c1
+1 : 1&1UE
 1 : 1UE1c
 1 : sUE1(
 1 : 1UE1,
@@ -11575,7 +11574,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : sUEf(
-0 : 1cUcE
+1 : 1UE1k
 1 : 1UEf(
 1 : 1UE1(
 1 : 1UE1,
@@ -11612,7 +11611,7 @@
 1 : 1UE1(
 1 : 1UE1,
 1 : sUE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1(
@@ -11677,7 +11676,7 @@
 1 : 1&1UE
 1 : 1&1of
 1 : 1&1of
-0 : sc&c1
+1 : s&1o(
 1 : 1&1UE
 1 : 1&f(1
 1 : 1&(E1
@@ -12772,6 +12771,7 @@
 1 : 1UE1,
 1 : 1UE1c
 1 : 1&1UE
+1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1,
 1 : sUE1,
@@ -12792,7 +12792,7 @@
 1 : 1UEnk
 1 : s&1UE
 1 : 1&1UE
-0 : 1c&c1
+1 : X
 1 : 1&1UE
 1 : 1&1UE
 1 : 1&1UE
@@ -12806,7 +12806,7 @@
 1 : 1&f(f
 1 : 1&(1)
 1 : sUE1,
-0 : 1cUcn
+1 : 1UE1,
 1 : 1UEf(
 1 : 1UE1,
 1 : 1UE1,
@@ -12979,7 +12979,7 @@
 1 : 1UEf(
 1 : 1UE1k
 1 : 1UE1(
-0 : 1cUcc
+1 : 1UE1(
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
@@ -13276,16 +13276,16 @@
 1 : 1UE1,
 1 : 1UEf(
 1 : 1UEvc
-0 : 1cUcE
+1 : 1UE1,
 1 : sUE1,
 1 : 1UE1k
-0 : scUcE
+1 : sUE1,
 1 : 1UEf(
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1k
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1k
 1 : 1UEf(
 1 : 1UEf(
@@ -13314,20 +13314,20 @@
 1 : 1;Enk
 1 : 1UE1,
 1 : 1)UE1
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1c
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : scUcE
+1 : sUE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1k
 1 : sUE1,
-0 : 1cUcE
+1 : 1UEf(
 1 : 1UEf(
 1 : 1UEnk
 1 : 1&1UE
@@ -13343,20 +13343,20 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
-0 : 1cUcE
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
 1 : 1UE1k
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : sUE1,
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1k
-0 : 1cUcE
+1 : 1UEf(
 1 : 1UEf(
 1 : 1UEnk
 1 : sUEf(
@@ -13370,7 +13370,7 @@
 1 : sUEf(
 1 : 1UE(E
 1 : 1UE1,
-0 : 1cUcE
+1 : 1UE1k
 1 : sUE1,
 1 : 1UE1k
 1 : 1UE1k
@@ -13383,7 +13383,7 @@
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1(
-0 : 1cUcE
+1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1,
 1 : 1UE1k
@@ -13413,7 +13413,7 @@
 1 : 1UEf(
 1 : 1UEf(
 1 : 1UEf(
-0 : 1cUcE
+1 : 1UEf(
 1 : 1UEf(
 1 : 1UEf(
 1 : 1UEf(
@@ -13462,7 +13462,7 @@
 1 : 1UEf(
 1 : 1UEf(
 1 : 1UEf(
-0 : 1cUcE
+1 : 1UEf(
 1 : 1UEf(
 1 : sUEf(
 1 : sUEf(
@@ -13982,7 +13982,7 @@
 1 : &1UEf
 1 : s&(1)
 1 : s&1UE
-0 : s&1cU
+1 : s&1UE
 1 : &1UE1
 1 : s&(Eo
 0 : 
@@ -14132,7 +14132,7 @@
 1 : s&1UE
 1 : nB1UE
 1 : sUE1,
-0 : sns
+1 : sUE1c
 1 : nUE1,
 1 : n&1Bf
 1 : n&1UE
@@ -14723,15 +14723,9 @@
 1 : Ef(n)
 1 : Ef(n)
 1 : EnknB
-0 : En
-0 : 
-0 : knB1)
 1 : EnknB
-0 : Ef
-0 : n
-0 : 
-0 : )
-0 : knB1)
+1 : EnknB
+1 : Ef(n)
 1 : U(Enk
 1 : 1U(En
 1 : 1U(En
@@ -14746,48 +14740,14 @@
 1 : 1nU(E
 1 : 1nU(E
 1 : 1nU(E
-0 : Ef
-0 : n
-0 : ,1
-0 : ,
-0 : 1
-0 : )
-0 : knB1)
-0 : Ef
-0 : n
-0 : ,1
-0 : ,
-0 : 1
-0 : )
-0 : knB1)
-0 : Ef
-0 : n
-0 : )
-0 : knB1)
-0 : Ef
-0 : n
-0 : ,
-0 : 
-0 : 1
-0 : 
-0 : ,
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 1
-0 : )
-0 : knB1)
-0 : Ef
-0 : n
-0 : ,
-0 : Ef(n
-0 : )
 1 : Ef(n)
 1 : Ef(n)
-0 : knB1)
-0 : 
+1 : Ef(n)
+1 : Ef(n)
+1 : Ef(n,
+1 : Ef(n)
+1 : Ef(n)
+1 : Ef(n)
 0 : knB1)
 1 : 1nU(E
 1 : EnknB
@@ -14818,8 +14778,7 @@
 1 : EnknB
 1 : 1nU(E
 1 : 1U(En
-0 : n
-1 : U(Enk
+1 : nU(En
 1 : nU(En
 1 : 1U(En
 1 : nU(En
@@ -14841,102 +14800,54 @@
 1 : sU(En
 1 : sU(En
 1 : sU(En
-0 : 1nc
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
+1 : 1nU(E
+1 : 1oU(E
+1 : 1U(En
+1 : 1U(En
+1 : 1nU(E
+1 : 1U(En
+1 : 1U(En
+1 : 1oU(E
+1 : 1oU(E
 1 : sU(E1
 1 : nU(En
 1 : sU(En
 1 : sU(E1
 1 : 1U(En
-1 : 1c
-1 : EnknB
-1 : 1c
-1 : U(Enk
-1 : 1Uc
-1 : EnknB
+1 : 1oU(E
+1 : 1U(En
+1 : 1U(En
 1 : 1U
-1 : 1Uc
-1 : EnknB
-1 : 1c
-1 : EnknB
-1 : 1c
-0 : Uc
-1 : EnknB
-1 : 1c
-0 : 
-1 : EnknB
-1 : 1c
-0 : 
-1 : EnknB
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : EnknB
-1 : 1c
-1 : EnknB
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-0 : Uc
-1 : EnknB
-1 : 1c
-0 : Uc
-1 : EnknB
-1 : 1c
-0 : UE(En
-1 : 1c
-0 : UE(En
-1 : 1c
-1 : U(Enk
-1 : 1c
-0 : Uo(En
-1 : 1c
-0 : Uc
-1 : EnknB
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
-1 : 1c
-1 : U(Enk
+1 : 1U(En
+1 : 1oU(E
+1 : 1oU(E
+1 : 1oU(E
+1 : 1oU(E
+1 : 1U(En
+1 : 1U(En
+1 : 1(Enk
+1 : 1(Enk
+1 : 1U(En
+1 : 1(U(E
+1 : 1(U(E
+1 : 1(U(E
+1 : 1(U(E
+1 : 1U(En
+1 : 1U(En
+1 : 1U(En
+1 : 1Uo(E
+1 : 1U(En
+1 : 1UE(E
+1 : 1UE(E
+1 : 1U(En
+1 : 1Uo(E
+1 : 1Uo(E
+1 : 1U(En
+1 : 1U(En
+1 : 1U(En
+1 : 1U(En
+1 : 1U(En
+1 : 1U(En
 1 : 1U(En
 1 : 1U(En
 1 : 1U(En
@@ -14967,201 +14878,65 @@
 1 : 1U(E(
 1 : 1U(E(
 1 : 1U(E(
-1 : 1U
-0 : 
-1 : E(n)k
+1 : 1U(E(
 1 : sovUE
-1 : 1U
-0 : 
-1 : E(n)k
-1 : 1U
-0 : 
-1 : E(n)k
-1 : 1U
-0 : 
-1 : E(n)k
-1 : 1U
-0 : 
-1 : E(n)k
-1 : 1U
-0 : 
-1 : E(n)k
-1 : 1U
-0 : 
-0 : 
-1 : E(n)k
-1 : 1U
-0 : 
-0 : 
-1 : E(n)k
-0 : 
-0 : 
-0 : 
+1 : 1U(E(
+1 : 1U(E(
+1 : 1U(E(
+1 : 1U(E(
+1 : 1U(E(
+1 : 1U(E(
+1 : 1U(E(
 0 : Ec
-0 : 
-0 : 
-0 : 
 0 : Ec
-0 : 
-0 : U
-0 : 
-0 : 
+0 : U(Ec
 0 : Ec
-0 : 
-0 : 
-0 : 
-0 : 
-0 : Ec
-0 : 
-0 : 
-0 : n
-0 : 
-0 : Ec
-1 : 1c
-0 : 
+0 : n(Ec
+1 : 1U
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1U
+1 : 1U
+1 : 1U
 0 : U
-1 : 1c
-0 : 
-0 : Uc
-1 : 1c
-0 : 
-0 : Uc
-0 : 
-1 : 1c
-0 : Uc
-0 : 
-1 : 1c
-0 : U
-1 : 1c
-0 : U
-1 : 1c
-0 : 
-0 : U
-0 : 
-0 : 
-0 : U
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : U
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : U
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : U
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : U
-0 : 
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : U
-0 : 
-0 : 
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : U
-0 : 
-0 : 
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : U
-0 : 
-0 : 
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : Uc
-0 : 
-0 : 
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : Uc
-0 : 
-0 : 
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : Uc
-0 : 
-0 : 
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : Uc
-0 : 
-0 : 
-1 : 1c
-0 : 
-0 : 
-0 : 
-0 : Uc
-0 : 
-0 : 
-1 : 1c
-0 : 
-0 : Uc
-1 : 1c
-0 : o1cUc
-0 : 1cUc
-0 : 1
-0 : o1cUc
-0 : 1cUc
-0 : 1cUc
-0 : 1cUc
-0 : 1
-0 : o1cU
-0 : 1
-0 : o1cU
-0 : 1
-0 : o1cUc
-0 : 1
-0 : o1cUc
-0 : 1
-0 : o1cU
-0 : 1cU
-0 : 
-0 : 1cU
-0 : 1o
-0 : 1cU
-0 : 1o
-0 : 1cU
-0 : 1o
-0 : 1cU
-0 : so
-0 : 1cUE
-0 : so
-0 : 1cU(E
-0 : so
-0 : 1cU(E
-0 : so
-0 : 1cU(E
-0 : so
-0 : 1cU(E
-0 : so
-0 : 1cU(E
-0 : so1cU
-0 : so
-0 : 1cU(E
+1 : 1U
+1 : 1U
+1 : 1U
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1Uc
+1 : 1U
+1 : 1U
+1 : 1Uc
+1 : 1Uc
+1 : 1U
+1 : 1U
+1 : 1U
+1 : 1U
+1 : 1U
+1 : 1U
+1 : so1UE
+1 : so1U(
+1 : so1U(
+1 : so1U(
+1 : so1U(
+1 : so1U(
+1 : so1U(
+1 : so1U(
 1 : sovU(
 1 : 1ovU(
 1 : X
@@ -15180,22 +14955,17 @@
 1 : sksc
 1 : sksc
 1 : sksc
-0 : sk
-0 : sons
+1 : sks
 1 : Ef(s)
 1 : 1ks
-0 : 
 1 : 1ks
-0 : 
 1 : sks
 1 : sksc
 1 : 1ks
-0 : 
 1 : vUE
 1 : sks
 1 : sksc
 1 : 1ks
-0 : 
 1 : vUE
 1 : sovUE
 1 : vUEnk
@@ -15203,7 +14973,6 @@
 1 : 1nU(E
 1 : U(Enk
 1 : 1ks
-0 : 
 1 : sksc
 1 : sUE
 1 : sUE
@@ -15235,10 +15004,10 @@
 1 : 1,(Ef
 1 : 1,(Ef
 0 : 
-0 : s)c&c
-0 : 1)c&c
-0 : 1c&c1
-0 : sc&c1
+1 : s)&1o
+1 : 1)&1o
+1 : 1&1ov
+1 : s&1ov
 0 : 
 0 : 
 1 : 1UE1c
@@ -15335,8 +15104,7 @@
 1 : 1)UE1
 1 : 1)UE(
 1 : 1)UEv
-0 : 1
-1 : UE1kn
+1 : 1UE1k
 1 : 1osUE
 1 : 1osUE
 1 : 1ovUE
@@ -15351,7 +15119,7 @@
 1 : 1UE1k
 1 : 1UE1k
 1 : 1)UE1
-1 : 1)onU
+1 : 1)o1U
 1 : 1UE1k
 1 : 1UE1k
 1 : 1)UE1
@@ -15456,7 +15224,7 @@
 1 : nU(En
 0 : 
 0 : 
-0 : so1cU
+1 : so1U(
 1 : so1U(
 1 : sovU(
 1 : sosU(
@@ -15487,36 +15255,23 @@
 1 : sk(f(
 1 : vk(f(
 0 : 
-0 : Ef
-0 : n
-0 : 
-0 : )
-0 : knB1)
+1 : Ef(n)
 1 : U(Enk
 0 : 
 0 : 
 0 : 
-0 : 
 0 : &f()
-0 : 1
-0 : &f()
-0 : 1
-0 : &v
-0 : 1
-0 : &v
-0 : 1
-0 : sns
-0 : 1
-0 : &v
+1 : 1&f()
+1 : 1&v
+1 : 1&v
+1 : 1&vos
+1 : 1&v
 0 : 
 0 : 
 0 : 
-1 : 1c
-0 : Uo(En
-1 : sc
-0 : Uo(En
-1 : vc
-0 : Uo(En
+1 : 1Uo(E
+1 : sUo(E
+1 : vUo(E
 0 : 
 1 : 1nU(E
 0 : 
@@ -15623,23 +15378,7 @@
 1 : 1UEn(
 0 : 
 0 : 
-0 : n
-0 : 
-0 : U
-0 : 
-0 : E
-0 : 
-0 : no
-0 : 
-0 : n
-0 : 
-0 : no
-0 : 
-0 : k
-0 : 
-0 : no
-0 : 
-0 : n
+1 : nUEno
 0 : 
 0 : 
 1 : sof(1
@@ -15731,9 +15470,9 @@
 1 : 1)kUE
 1 : 1)kUE
 1 : v)kUE
-1 : n)kUE
-1 : n)kB1
-1 : n)kB1
+1 : 1)kUE
+1 : 1)kB1
+1 : 1)kB1
 1 : 1)kB1
 1 : 1)B1n
 1 : 1)B1k
@@ -15741,7 +15480,7 @@
 0 : 
 1 : s;Tnn
 1 : s);Tn
-0 : s
+1 : s;Tnn
 1 : s;E1;
 1 : 1;Tn;
 1 : 1;Tkn
@@ -15835,10 +15574,10 @@
 0 : 
 0 : 
 0 : 
-0 : 1n;
+1 : 1&1;
 0 : 
 0 : 
-0 : o1&oo
+1 : 1&1
 0 : 
 0 : 
 1 : 1f()U
@@ -16080,13 +15819,6 @@
 1 : s&kos
 1 : UEnkn
 1 : sof()
-0 : Uc
-0 : 
-0 : 
-0 : 
-1 : Ef(n)
-0 : 
-1 : X
 1 : s&1os
 1 : s&1os
 1 : s&(1)
@@ -16164,10 +15896,8 @@
 1 : sof(s
 1 : sof(s
 1 : sof(E
-0 : 1oc
-1 : E1k(n
-1 : nc
-0 : kn
+1 : 1o(E1
+1 : nkn
 1 : so(1)
 1 : sof(1
 1 : s&f(1
@@ -16280,13 +16010,6 @@
 1 : s;Evk
 1 : s;Tnk
 1 : s;Tnk
-0 : sns
-0 : knknk
-1 : vos
-0 : TTnv
-0 : knknk
-0 : nnnn;
-0 : &ft,n
 1 : vos
 1 : sU(Ev
 1 : sU(Ev
@@ -16329,29 +16052,12 @@
 0 : 
 0 : 
 0 : 
-0 : s&c
-1 : 1c
-0 : Uc
-0 : Ev:on
-1 : nB1c
+1 : s&1UE
 1 : s&1o(
-1 : s&1Tn
 1 : s&1o(
 0 : s&v:o
-0 : 
-0 : s
-0 : s&c
-0 : 
-1 : 1Uc
-0 : 
-0 : Ef()c
-0 : s&c
-0 : 
-1 : 1Uc
-0 : 
-0 : E(Enk
-0 : 
-0 : s
+1 : s&1UE
+1 : s&1UE
 0 : 
 0 : 
 0 : 
@@ -16409,7 +16115,7 @@
 1 : 1UE1
 1 : 1UE1
 1 : 1UE1
-1 : nUE1
+1 : E1UE1
 1 : 1&1UE
 1 : X
 1 : 1UEnn
@@ -16427,9 +16133,9 @@
 1 : 1UE1
 1 : 1&1UE
 1 : EnUE1
-0 : nE1
+0 : EUE1
 1 : 1UE1
-0 : E1knn
+0 : E1kk1
 0 : sns
 0 : 
 0 : 
@@ -16450,11 +16156,7 @@
 0 : 
 0 : 
 0 : 
-1 : 1Uc
-0 : 
-0 : 
-0 : 
-1 : X
+1 : 1UE1o
 0 : 
 0 : 
 0 : 
@@ -16479,8 +16181,7 @@
 0 : 
 0 : 
 1 : 1UEnn
-1 : 1U
-1 : EnknB
+1 : 1UEnk
 0 : 
 0 : sknsk
 0 : sksns
@@ -16496,7 +16197,7 @@
 1 : 1&nB1
 1 : X
 1 : 1ovkU
-0 : so1cU
+1 : so1U(
 1 : 1UEvs
 1 : 1kUEn
 1 : n&1UE
@@ -16510,9 +16211,7 @@
 0 : 
 0 : 
 0 : 
-1 : 1Uc
-0 : Ec
-0 : 1
+1 : 1UE1
 0 : 
 0 : 
 0 : 
@@ -16520,343 +16219,15 @@
 0 : 
 0 : 
 0 : 
-1 : 1Uc
+1 : 1UE1o
 0 : 
 0 : 
 0 : 
+1 : vUE1(
 0 : 
 0 : 
 0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-1 : X
-0 : 
-0 : 
-0 : 
-1 : vUc
-0 : E1c
-0 : )
-0 : 
-0 : 
-0 : 
-1 : 1Uc
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-0 : 
-1 : X
+1 : 1UE1o
 0 : 
 0 : 
 0 : 
@@ -16865,27 +16236,27 @@
 0 : 
 0 : 
 0 : 
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcn
-0 : 1cUcE
-0 : 1cUcn
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcn
-0 : 1cUcE
-0 : scUcn
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
-0 : 1cUcE
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : sUE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
 0 : 
 0 : 
 0 : 
@@ -85138,4 +84509,1616 @@
 1 : 1)&1o
 1 : 1)&1o
 1 : 1&1of
-1 : s)&1
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1of
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1of
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1of
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1of
+1 : 1)k1&
+1 : s)k1&
+1 : sk1&1
+1 : sk1&1
+1 : 1)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s&1o(
+1 : 1)&1o
+1 : 1)&1o
+1 : 1)&1o
+1 : 1&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : 1)k1&
+1 : s)k1&
+1 : sk1&1
+1 : sk1&1
+1 : 1)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s&1o(
+1 : 1)&1o
+1 : 1)&1o
+1 : 1)&1o
+1 : 1&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : 1)k1&
+1 : s)k1&
+1 : sk1&1
+1 : sk1&1
+1 : 1)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s&1o(
+1 : 1)&1o
+1 : 1)&1o
+1 : 1)&1o
+1 : 1&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s)&1o
+1 : s)&1o
+1 : s)&1o
+1 : s&1o(
+1 : s&1o(
+1 : sB1c
+1 : sB1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sB1c
+1 : sB1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sB1c
+1 : sB1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sB1c
+1 : sB1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUEvc
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sUE1c
+1 : sB1&s
+1 : sB1&s
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sB1&s
+1 : sB1&s
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUEv&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : s&1o(
+1 : s&1o(
+0 : 
+0 : 
+0 : 
+0 : 
+0 : 
+1 : 1&1
+0 : 
+0 : 
+1 : 1&1
+0 : 
+0 : 
+1 : 1&1
+0 : 
+0 : 
+1 : 1&1
+0 : 
+0 : 
+1 : X
+0 : 
+0 : 
+1 : X
+0 : 
+1 : s&sos
+1 : s&sos
+1 : s&1o(
+1 : sB1
+1 : sB1c
+1 : sB1c
+1 : sB1c
+1 : sB1c
+1 : sB1c
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+1 : s&1UE
+0 : 
+0 : 
+0 : 
+1 : s&sos
+0 : sv
+1 : 1UE
+1 : 1UE1
+1 : 1UE1,
+1 : 1UE1
+1 : 1UE1,
+1 : 1UE1
+1 : 1UE1
+1 : 1UE1
+1 : 1UE1
+1 : 1UE1
+1 : 1UE1
+1 : 1UE1
+1 : 1UE1
+1 : 1UE1
+1 : 1UE1
+1 : 1UEv
+1 : 1UEvc
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf,
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1
+1 : 1&1
+1 : 1&1
+1 : 1&1
+1 : 1&f(1
+1 : 1&(E1
+1 : 1&(E1
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1k
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1)
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UEf(
+1 : s&sos
+1 : s&sos
+0 : s
+1 : s&sos
+1 : s&sos
+1 : s&f(1
+1 : s;T(1
+1 : 1;T(1
+1 : 1UE1,
+1 : 1UE1,
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE(E
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UE1,
+1 : 1UE1B
+1 : 1UE1B
+1 : 1UE1B
+1 : 1UE1B
+1 : 1UE1B
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UE1o
+1 : X
+1 : X
+1 : X
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1&1UE
+1 : 1UE
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UEnk
+1 : 1UEnk
+1 : 1UEf(
+1 : 1UEnk
+1 : 1UEnk
+1 : 1UEnk
+1 : 1UEnk
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1UEf(
+1 : 1&1
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : 1UE1c
+1 : s&sos
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&
+1 : sUE1&

@@ -1,4 +1,3 @@
-import java.util.regex.*;
 
 public class Libinjection {
 
@@ -219,8 +218,8 @@ public class Libinjection {
 		}
 
 		while (true) {
-			System.out.println("pos:" + pos + " left:" + left);
-			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
+//			System.out.println("pos=" + pos + "  left=" + left + " curtype=" + state.tokenvec[state.current].type + " value=" + state.tokenvec[state.current].val);
+//			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
 			/*
 			 * do we have all the max number of tokens? if so do some special
 			 * cases for 5 tokens
@@ -259,9 +258,10 @@ public class Libinjection {
 				break;
 			}
 
-			// get up to two tokens (assuming pos == left)
+			// get up to two tokens
 			while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && (pos - left) < 2) {
 				state.current = pos;
+				current = state.current;
 				more = libinjection_sqli_tokenize();
 				if (more) {
 					if (state.tokenvec[current].type == TYPE_COMMENT) {
@@ -279,8 +279,8 @@ public class Libinjection {
 			 * added the 5th (and last) token In this case go through loop
 			 * again, go through special cases, exit or keep going.
 			 */
-			System.out.println("pos:" + pos + " left:" + left);
-			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
+//			System.out.println("pos=" + pos + "  left=" + left + " curtype=" + state.tokenvec[state.current].type);
+//			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
 			if (pos - left < 2) {
 				left = pos;
 				continue;
@@ -493,10 +493,11 @@ public class Libinjection {
 			 * all cases of handling 2 tokens is done and nothing matched. Get
 			 * one more token
 			 */
-			System.out.println("pos:" + pos + " left:" + left);
-			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
+//			System.out.println("pos=" + pos + "  left=" + left + " curtype=" + state.tokenvec[state.current].type);
+//			System.out.println("current token: type: " +state.tokenvec[state.current].type + " value: " + state.tokenvec[state.current].val);
 			while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && (pos - left) < 3) {
-				state.current = pos;
+				state.current = pos; 
+				current = state.current;
 				more = libinjection_sqli_tokenize();
 				if (more) {
 					if (state.tokenvec[current].type == TYPE_COMMENT) {
@@ -715,9 +716,11 @@ public class Libinjection {
 			state.stats_tokens += 1;
 			return true;
 		}
+		
 
 		while (pos < slen) {
 			char ch = s.charAt(pos); // current character
+//			System.out.println("Character to be processed: " + ch);
 			// parse and tokenize character
 			switch (ch) {
 			case 0:
@@ -895,7 +898,7 @@ public class Libinjection {
 				pos = parse_number();
 				break; /* 57 */
 			case 58:
-				pos = parse_colon();
+				pos = parse_operator2();
 				break; /* 58 */
 			case 59:
 				pos = parse_char();
@@ -1490,11 +1493,10 @@ public class Libinjection {
 				break; /* 255 */
 			default:
 				pos = pos + 1;
-				System.out.println("DANGER!!! UNKOWN CHARACTER!!!");
+//				System.out.println("DANGER!!! UNKOWN CHARACTER!!!");
 				break;
 			}
 			state.pos = pos;
-
 			if (state.tokenvec[current].type != CHAR_NULL) {
 				state.stats_tokens += 1;
 				return true;
@@ -1665,10 +1667,11 @@ public class Libinjection {
 		// is a comment
 		int clen;
 		int ctype = TYPE_COMMENT;
-		int cend = s.indexOf("*/", pos + 2); // index of * in */ (we do pos + 2
-												// to skip over /x)
-
-		if (cend == -1) {
+		// index of * in */ (we do pos + 2 to skip over /x)
+		int cend = s.indexOf("*/", pos + 2); 
+		boolean closed = cend != -1;
+		
+		if (!closed) {
 			clen = slen - pos;
 			cend = slen - 2;
 		} else {
@@ -1683,9 +1686,9 @@ public class Libinjection {
 		 * Also, Mysql's "conditional" comments for version are an automatic
 		 * black ban!
 		 */
-		if (s.substring(pos + 2, cend + 2).contains("/*")) {
+		if ( closed && s.substring(pos + 2, cend + 2).contains("/*")) {
 			ctype = TYPE_EVIL;
-		} else if (is_mysql_comment(s, slen, pos)) {
+		} else if ( is_mysql_comment(s, slen, pos)) {
 			ctype = TYPE_EVIL;
 		}
 
@@ -1734,7 +1737,7 @@ public class Libinjection {
 			return pos + 3;
 		}
 
-		// 2-char operators: "-=", "+=", "!!", etc...
+		// 2-char operators: "-=", "+=", "!!", ":=", etc...
 		String operator = s.substring(pos, pos + 2);
 		ch = libinjection_sqli_lookup_word(operator);
 		if (ch != null) {
@@ -1742,8 +1745,14 @@ public class Libinjection {
 			return pos + 2;
 		}
 
+		if (s.charAt(pos) == ':') {
+			// ':' alone is not an operator
+			state.tokenvec[state.current] = new Token(TYPE_COLON, pos, 1, ":");
+			return pos + 1;
+		} else {
 		// must be a 1-char operator
 		return parse_operator1();
+		}
 	}
 
 	int parse_colon() {
@@ -1982,12 +1991,17 @@ public class Libinjection {
 	int parse_bword() {
 		String s = state.s;
 		int pos = state.pos;
+		int slen = state.slen;
 		int endptr = s.indexOf(']', pos);
 		if (endptr == -1) {
-			Token token = new Token(TYPE_BAREWORD, pos, endptr - pos + 1, s.substring(pos, endptr + 1));
+			Token token = new Token(TYPE_BAREWORD, pos, slen - pos, s.substring(pos));
 			state.tokenvec[state.current] = token;
+			return state.slen;
+		} else {
+			Token token = new Token(TYPE_BAREWORD, pos, endptr + 1 - pos, s.substring(pos, endptr + 1));
+			state.tokenvec[state.current] = token;
+			return endptr + 1;
 		}
-		return endptr + 1;
 	}
 
 	int parse_word() {
@@ -2024,13 +2038,17 @@ public class Libinjection {
 		/*
 		 * do normal lookup with word including '.'
 		 */
-		// if (wlen < LIBINJECTION_SQLI_TOKEN_SIZE) {
 		wordtype = libinjection_sqli_lookup_word(token.val);
-		if (wordtype == null) {
+		/* 
+		 * before, we differentiated fingerprint lookups from word lookups
+		 * by adding a 0 to the front for fingerprint lookups. 
+		 * now, just check if word we found was a fingerprint
+		 */
+		if (wordtype == null || wordtype == 'F') {
 			wordtype = TYPE_BAREWORD;
 		}
 		state.tokenvec[state.current].type = (char) wordtype;
-		// }
+
 		return pos + wlen;
 	}
 
@@ -2100,7 +2118,6 @@ public class Libinjection {
 		}
 
 		xlen = strlencspn(s.substring(pos), " <>:\\?=@!#~+-*/&|^%(),';\t\n\u000b\f\r'`\""); // \u000b is vertical tab
-
 		if (xlen == 0) {
 			Token token = new Token(TYPE_VARIABLE, pos, 0, "");
 			state.tokenvec[state.current] = token;
@@ -2138,11 +2155,13 @@ public class Libinjection {
 					Token token = new Token(TYPE_STRING, pos + 2, slen - (pos + 2), s.substring(pos + 2));
 					token.str_open = '$';
 					token.str_close = CHAR_NULL;
+					state.tokenvec[state.current] = token;
 					return slen;
 				} else {
 					Token token = new Token(TYPE_STRING, pos + 2, strend - (pos + 2), s.substring(pos + 2, strend));
 					token.str_open = '$';
 					token.str_close = '$';
+					state.tokenvec[state.current] = token;
 					return strend + 2;
 				}
 			} else {
