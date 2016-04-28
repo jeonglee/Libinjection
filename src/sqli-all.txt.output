@@ -14038,7 +14038,7 @@ true : sUE1,
 true : s&1c
 true : n&1
 true : sUE1,
-true : nc
+true : sUE1c
 true : s&1UE
 true : n&(1)
 true : n&(1)
@@ -14244,7 +14244,7 @@ true : sUE1,
 true : sUE1,
 true : sUE1,
 true : sUE1,
-true : sos
+true : sUE1,
 true : UE1,f
 true : UE1kn
 true : sUE1(
@@ -15897,7 +15897,7 @@ true : sof(s
 true : sof(s
 true : sof(E
 true : 1o(E1
-true : nkn
+true : sUEf(
 true : so(1)
 true : sof(1
 true : s&f(1

@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 
 public class Test {
-	public void testfile(String inputfile, String outputfile) {
+	public void testfile(String inputfile, String outputfile, boolean decode) {
 		Scanner in = null;
 		PrintWriter out = null;
 		
@@ -22,10 +22,12 @@ public class Test {
 				/* 
 				 * urldecode
 				 */
-				try {
-					line = URLDecoder.decode(line, "UTF-8");
-				} catch (UnsupportedEncodingException ex) {
+				if (decode) {
+					try {
+						line = URLDecoder.decode(line, "UTF-8");
+					} catch (UnsupportedEncodingException ex) {
 					ex.printStackTrace();
+					}
 				}
 				
 				/*

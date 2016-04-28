@@ -194,7 +194,7 @@ public class Libinjection {
 	}
 
 	public boolean libinjection_sqli_check_fingerprint() {
-		return libinjection_sqli_blacklist();
+		return libinjection_sqli_blacklist() && libinjection_sqli_not_whitelist();
 	}
 
 	public boolean libinjection_sqli_blacklist() {
@@ -205,7 +205,192 @@ public class Libinjection {
 		}
 		return false;	
 	}
+	
+	/*
+	 * return true if SQLi, false if benign
+	 */
+	public boolean libinjection_sqli_not_whitelist() {
+	    /*
+	     * We assume we got a SQLi match
+	     * This next part just helps reduce false positives.
+	     *
+	     */
+	    char ch;
+	    String fingerprint = state.fingerprint;
+	    int tlen = fingerprint.length();
 
+	    if (tlen > 1 && fingerprint.charAt(tlen-1) == TYPE_COMMENT) {
+	        /*
+	         * if ending comment is 'sp_password' then it's SQLi!
+	         * MS Audit log apparently ignores anything with
+	         * 'sp_password' in it. Unable to find primary reference to
+	         * this "feature" of SQL Server but seems to be known SQLi
+	         * technique
+	         */
+	        if (state.s.contains("sp_password")) {
+	            return true;
+	        }
+	    }
+
+	    switch (tlen) {
+	    case 2:{
+	        /*
+	         * case 2 are "very small SQLi" which make them
+	         * hard to tell from normal input...
+	         */
+
+	        if (fingerprint.charAt(1) == TYPE_UNION) {
+	            if (state.stats_tokens == 2) {
+	                /* not sure why but 1U comes up in SQLi attack
+	                 * likely part of parameter splitting/etc.
+	                 * lots of reasons why "1 union" might be normal
+	                 * input, so beep only if other SQLi things are present
+	                 */
+	                /* it really is a number and 'union'
+	                 * other wise it has folding or comments
+	                 */
+	                return false;
+	            } else {
+	                return true;
+	            }
+	        }
+	        /*
+	         * if 'comment' is '#' ignore.. too many FP
+	         */
+	        if (state.tokenvec[1].val.charAt(0) == '#') {
+	            return false;
+	        }
+
+	        /*
+	         * for fingerprint like 'nc', only comments of /x are treated
+	         * as SQL... ending comments of "--" and "#" are not SQLi
+	         */
+	        if (state.tokenvec[0].type == TYPE_BAREWORD &&
+	            state.tokenvec[1].type == TYPE_COMMENT &&
+	            state.tokenvec[1].val.charAt(0) != '/') {
+	                return false;
+	        }
+
+	        /*
+	         * if '1c' ends with '/x' then it's SQLi
+	         */
+	        if (state.tokenvec[0].type == TYPE_NUMBER &&
+	            state.tokenvec[1].type == TYPE_COMMENT &&
+	            state.tokenvec[1].val.charAt(0) == '/') {
+	            return true;
+	        }
+
+	        /*
+	         * there are some odd base64-looking query string values
+	         * 1234-ABCDEFEhfhihwuefi--
+	         * which evaluate to "1c"... these are not SQLi
+	         * but 1234-- probably is.
+	         * Make sure the "1" in "1c" is actually a true decimal number
+	         *
+	         * Need to check -original- string since the folding step
+	         * may have merged tokens, e.g. "1+FOO" is folded into "1"
+	         *
+	         * Note: evasion: 1*1--
+	         */
+	        if (state.tokenvec[0].type == TYPE_NUMBER &&
+	            state.tokenvec[1].type == TYPE_COMMENT) {
+	            if (state.stats_tokens > 2) {
+	                /* we have some folding going on, highly likely SQLi */
+	                return true;
+	            }
+	            /*
+	             * we check that next character after the number is either whitespace,
+	             * or '/' or a '-' ==> SQLi.
+	             */
+	            ch = state.s.charAt(state.tokenvec[0].len);
+	            if ( ch <= 32 ) {
+	                /* next char was whitespace,e.g. "1234 --"
+	                 * this isn't exactly correct.. ideally we should skip over all whitespace
+	                 * but this seems to be ok for now
+	                 */
+	                return true;
+	            }
+	            if (ch == '/' && state.s.charAt(state.tokenvec[0].len + 1) == '*') {
+	                return true;
+	            }
+	            if (ch == '-' && state.s.charAt(state.tokenvec[0].len + 1) == '-') {
+	                return true;
+	            }
+
+	            return false;
+	        }
+
+	        /*
+	         * detect obvious SQLi scans.. many people put '--' in plain text
+	         * so only detect if input ends with '--', e.g. 1-- but not 1-- foo
+	         */
+	        if ((state.tokenvec[1].len > 2)
+	            && state.tokenvec[1].val.charAt(0) == '-') {
+	            return false;
+	        }
+
+	        break;
+	    } /* case 2 */
+	    case 3:{
+	        /*
+	         * ...foo' + 'bar...
+	         * no opening quote, no closing quote
+	         * and each string has data
+	         */
+
+	        if (fingerprint.equals("sos")
+	            || fingerprint.equals("s&s")) {
+
+	                if ((state.tokenvec[0].str_open == CHAR_NULL)
+	                    && (state.tokenvec[2].str_close == CHAR_NULL)
+	                    && (state.tokenvec[0].str_close == state.tokenvec[2].str_open)) {
+	                    /*
+	                     * if ....foo" + "bar....
+	                     */
+	                    return true;
+	                }
+	                if (state.stats_tokens == 3) {
+	                    return false;
+	                }
+
+	                /*
+	                 * not SQLi
+	                 */
+	                return false;
+	        } else if (state.fingerprint.equals("s&n") ||
+	                   state.fingerprint.equals("n&1") ||
+	                   state.fingerprint.equals("1&1") ||
+	                   state.fingerprint.equals("1&v") ||
+	                   state.fingerprint.equals("1&s")) {
+	            /* 
+	             * 'sexy and 17' not SQLi
+	             * 'sexy and 17<18'  SQLi
+	             */
+	            if (state.stats_tokens == 3) {
+	                return false;
+	            }
+	        } else if (state.tokenvec[1].type == TYPE_KEYWORD) {
+	            if ((state.tokenvec[1].len < 5) ||
+	            	"INTO".equals(state.tokenvec[1].val.toUpperCase())) {
+	                /* 
+	                 * if it's not "INTO OUTFILE", or "INTO DUMPFILE" (MySQL)
+	                 * then treat as safe
+	                 */
+	                return false;
+	            }
+	        }
+	        break;
+	    }  /* case 3 */
+	    case 4:
+	    case 5: {
+	        /* nothing right now */
+	        break;
+	    } /* case 5 */
+	    } /* end switch */
+
+	    return true;
+	}
+	
 	public int libinjection_sqli_fold() {
 		int pos = 0;  /* position where NEXT token goes */
 		int left = 0; /* # of tokens so far that will be part of the final fingerprint */
