@@ -381,7 +381,19 @@ public class Libinjection {
 	        }
 	        break;
 	    }  /* case 3 */
-	    case 4:
+	    case 4: {
+	    	/* NOVC, 1OVC */
+	    	if (state.fingerprint.equals("novc") || state.fingerprint.equals("1ovc")) {
+	    		if (state.tokenvec[1].val.equals("!")
+	    			&& state.tokenvec[2].len == 0
+	    			&& state.tokenvec[3].val.charAt(0) == '#') {
+	    			/*
+	    			 * case where user enters !@# in password
+	    			 */
+	    			return false;
+	    		}
+	    	}
+	    }
 	    case 5: {
 	        /* nothing right now */
 	        break;
