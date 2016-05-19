@@ -50,7 +50,9 @@ public class Test {
 				
 				out.println(libinjection.getOutput());
 			}
-			//System.out.println(sum/count);
+			if (time) {
+				System.out.println("Total: " + sum + " Average: " + sum/count);
+			}
 			return sum;
 			
 		} catch (FileNotFoundException | UnsupportedEncodingException ex) {

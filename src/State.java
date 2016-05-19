@@ -1,28 +1,26 @@
 
 public class State {
 	
-	String s;	// input string
-	int slen;	// length of input
-	int fplen;	// length of fingerprint
-	int flags;	// flag to indicate which mode we're running in: example.) flag_quote_none AND flag_sql_ansi 
-	int pos;  	// index in string during tokenization
-	Token[] tokenvec = new Token[8];
-	int current; // current position in tokenvec
-	String fingerprint;
-	int reason;
+	String s;	 /* input string */
+	int slen;	 /* length of input */
+	int fplen;	 /* length of fingerprint */
+	int flags;	 /* flag to indicate which mode we're running in: example.) flag_quote_none AND flag_sql_ansi */
+	int pos;  	 /* index in string during tokenization */
+	int current; /* current position in tokenvec*/
 	int stats_comment_ddw;
 	int stats_comment_ddx;
-	int stats_comment_c;	//c-style comments found  /x .. x/
-	int stats_comment_hash;	//'#' operators or MySQL EOL comments found
+	int stats_comment_c;	/* c-style comments found  /x .. x/ */
+	int stats_comment_hash;	/* '#' operators or MySQL EOL comments found */
 	int stats_folds;
-	int stats_tokens;		
+	int stats_tokens;
+	Token[] tokenvec = new Token[8];
+	String fingerprint;
     
     
     public State(String s, int len, int flags) {
     	if (flags == 0) {
     		flags = Libinjection.FLAG_QUOTE_NONE | Libinjection.FLAG_SQL_ANSI;
     	}
- 
     	this.s = s;
     	this.slen = len;
         this.flags = flags;
