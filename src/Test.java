@@ -7,7 +7,12 @@ import java.util.Scanner;
 
 
 public class Test {
-	public void testfile(String inputfile, String outputfile, boolean decode) {
+	public long testfile(String inputfile, String outputfile, boolean decode, boolean time) {
+		long startTime;
+		long endTime;
+		long sum = 0;
+		int count = 0;
+		
 		Scanner in = null;
 		PrintWriter out = null;
 		
@@ -33,9 +38,21 @@ public class Test {
 				/*
 				 *  test and add result to outputfile
 				 */
-				libinjection.libinjection_sqli(line);
+				if (time) { 
+					startTime = System.currentTimeMillis(); 
+					libinjection.libinjection_sqli(line);
+					endTime = System.currentTimeMillis();
+					sum += (endTime - startTime);
+					count++;
+				} else {
+					libinjection.libinjection_sqli(line);
+				}
+				
 				out.println(libinjection.getOutput());
 			}
+			//System.out.println(sum/count);
+			return sum;
+			
 		} catch (FileNotFoundException | UnsupportedEncodingException ex) {
 			System.out.println("file not found or unsupported encoding");
 		} finally {
@@ -53,6 +70,7 @@ public class Test {
 			}
 			
 		}
+		return Integer.MIN_VALUE;
 	}
 
 }

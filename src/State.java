@@ -10,15 +10,12 @@ public class State {
 	int current; // current position in tokenvec
 	String fingerprint;
 	int reason;
-    int stats_comment_ddw;
+	int stats_comment_ddw;
 	int stats_comment_ddx;
-    int stats_comment_c;	//c-style comments found  /x .. x/
-    int stats_comment_hash;	//'#' operators or MySQL EOL comments found
-    int stats_folds;
-    int stats_tokens;		
-	// ptr_looup_fn lookup; ==> lookup function
-	// void* userdata; ==> pointer to userdata
-    
+	int stats_comment_c;	//c-style comments found  /x .. x/
+	int stats_comment_hash;	//'#' operators or MySQL EOL comments found
+	int stats_folds;
+	int stats_tokens;		
     
     
     public State(String s, int len, int flags) {
@@ -30,8 +27,6 @@ public class State {
     	this.slen = len;
         this.flags = flags;
         this.current = 0;
-//    	sf->lookup = libinjection_sqli_lookup_word;
-//      sf->userdata = 0;
     }
     
     
@@ -47,7 +42,7 @@ public class State {
     		int i = 0;
     		while (tokenvec[i] != null) {
     			System.out.printf("[%s ", tokenvec[i].type);
-    		System.out.printf("%s] \n", tokenvec[i].val);
+    			System.out.printf("%s] \n", tokenvec[i].val);
     			i++;
     		}
     		System.out.println();
