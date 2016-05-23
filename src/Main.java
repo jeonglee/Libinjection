@@ -2,8 +2,9 @@
 public class Main {
 
 	public static void main(String[] args) {
-//		Libinjection libinjection = new Libinjection();
-//		libinjection.libinjection_sqli("admin' OR 1=1--");
+		Libinjection a = new Libinjection();
+		boolean issqli = a.libinjection_sqli("admin' OR 1=1--");
+		System.out.println(issqli);
 		
 		Test t = new Test();
 		t.testfile("src/sqli-all.txt", "src/sqli-all.txt.output", true, false);
