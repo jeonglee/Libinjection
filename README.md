@@ -7,12 +7,12 @@ This is a porting of the SQLi detection tool [libinjection](https://github.com/c
 public class Main {
 
 	public static void main(String[] args) {
-	/* test a string */
+	        /* test a string */
 		Libinjection a = new Libinjection();
                 boolean issqli = a.libinjection_sqli("admin' OR 1=1--");
                 System.out.println(issqli); 
 	
-	/* test a file and output its results to another file, with options to urldecode and time (in milliseconds) */ 	
+	        /* test a file and output its results to another file, with options to urldecode and time (in milliseconds) */ 	
 		Test t = new Test();
 		t.testfile("src/sqli-all.txt", "src/sqli-all.txt.output", true, false);
 	}
