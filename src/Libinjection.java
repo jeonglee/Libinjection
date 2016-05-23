@@ -394,7 +394,8 @@ public class Libinjection {
 	    			return false;
 	    		}
 	    	}
-	    }
+	    	break;
+	    } /* case 4 */
 	    case 5: {
 	        /* nothing right now */
 	        break;
