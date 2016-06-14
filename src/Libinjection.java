@@ -62,7 +62,7 @@ public class Libinjection {
 		boolean issqli = libinjection_is_sqli();
 		
 		output = issqli + " : " + state.fingerprint;
-		System.out.println(output);
+//		System.out.println(output);
 		return issqli;
 	}
 
