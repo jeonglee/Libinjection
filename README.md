@@ -14,7 +14,7 @@ public class Main {
 
         /* test a file and output its results to another file, with options to urldecode and time (in milliseconds) */  
         Test t = new Test();
-        t.testfile("src/sqli-all.txt", "src/sqli-all.txt.output", true, false);
+        t.testfile("data/sqli.txt", "data/resultsfile", true, false);
     }
 }
 ```
