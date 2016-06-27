@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 
 public class Keyword {
 	HashMap<String, Character> keywordMap = new HashMap<String, Character>();
-	int sql_keywords_sz = 0;
 
 	public Keyword(String filename) {
 		String word;
@@ -42,8 +41,7 @@ public class Keyword {
 		for (String keyword : keywordMap.keySet()) {
 			String keytype = keywordMap.get(keyword).toString();
 			System.out.println("word: " + keyword + " type: " + keytype);
-			sql_keywords_sz++;
 		}
-		System.out.println("table size: " + sql_keywords_sz);
+		System.out.println("table size: " + keywordMap.size());
 	}
 }
