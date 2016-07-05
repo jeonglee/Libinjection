@@ -5,10 +5,10 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Keyword {
+class Keyword {
 	HashMap<String, Character> keywordMap = new HashMap<String, Character>();
 
-	public Keyword(String filename) {
+	Keyword(String filename) {
 		String word;
 		char type;
 		Pattern wordpattern, typepattern;
