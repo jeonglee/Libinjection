@@ -1,5 +1,5 @@
 
-public class Token {
+class Token {
 	char type;
 	char str_open;
 	char str_close;
@@ -9,7 +9,7 @@ public class Token {
 	int pos; 
 	int len;
 	
-	public Token(int stype, int pos, int len, String val) {
+	Token(int stype, int pos, int len, String val) {
 		this.type = (char) stype;
 		this.pos = pos;
 		this.len = len;
