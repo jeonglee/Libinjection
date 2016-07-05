@@ -1,5 +1,5 @@
 
-public class State {
+class State {
 	
 	String s;	 /* input string */
 	int slen;	 /* length of input */
@@ -17,7 +17,7 @@ public class State {
 	String fingerprint;
     
     
-    public State(String s, int len, int flags) {
+    State(String s, int len, int flags) {
     	if (flags == 0) {
     		flags = Libinjection.FLAG_QUOTE_NONE | Libinjection.FLAG_SQL_ANSI;
     	}
